@@ -33,8 +33,10 @@
         h1:hover, h1:focus { background: #1a1a1a; border: 1px dashed var(--primary); }
         h2 { border-bottom: 1px solid var(--border); padding-bottom: 5px; color: var(--primary); display: flex; justify-content: space-between; align-items: center; font-size: 18px; flex-wrap: wrap; gap: 10px;}
         
-        /* Status e Loader da Nuvem */
-        .status-nuvem { position: absolute; right: 10px; top: 10px; font-size: 12px; color: var(--success); font-weight: bold;}
+        /* Botão Status da Nuvem */
+        .status-nuvem { position: absolute; right: 10px; top: 10px; font-size: 12px; color: var(--success); font-weight: bold; cursor: pointer; background: #18181b; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.5); z-index: 10; transition: 0.2s; }
+        .status-nuvem:active { transform: scale(0.95); }
+        
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 9999; color: var(--primary); font-size: 20px; font-weight: bold;}
 
         .container { max-width: 1200px; margin: 0 auto; display: grid; gap: 20px; grid-template-columns: 1fr; }
@@ -106,6 +108,7 @@
             .toolbar, button, input, select, .checkbox-group { display:none !important; }
             .card, .meta-card, .budget-row, .dash-card { background:#fff; color:#111; border-color:#bbb; box-shadow:none; break-inside:avoid; }
             td, th { background:#fff; color:#111; }
+            .status-nuvem { display: none !important; }
         }
     </style>
 </head>
@@ -114,7 +117,7 @@
 <div id="loader">Conectando ao Firebase... ☁️</div>
 
 <header>
-    <div class="status-nuvem" id="statusNuvem">Conectado ✅</div>
+    <div class="status-nuvem" id="statusNuvem" onclick="reconectarNuvem()" title="Tocar para forçar reconexão">Conectado ✅</div>
     <h1 contenteditable="true" id="tituloApp" onblur="salvarTitulo()">Vitória - Gestão Financeira Pessoal</h1>
     <p style="color: #a1a1aa; font-size: 14px;">Visão geral, metas e controle do seu dinheiro.</p>
 </header>
@@ -394,7 +397,6 @@
     // Inicializa Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    // Salva na gaveta exclusiva da Vitória
     const documentoGeral = db.collection('sistemaFinanceiro').doc('vitoria_dados');
 
     // ESTADOS
@@ -480,8 +482,11 @@
 
     function posLoad(statusText, statusColor) {
         document.getElementById('loader').style.display = 'none';
-        document.getElementById('statusNuvem').innerText = statusText;
-        document.getElementById('statusNuvem').style.color = statusColor;
+        let el = document.getElementById('statusNuvem');
+        if(el) {
+            el.innerText = statusText;
+            el.style.color = statusColor;
+        }
         
         if (!document.getElementById('mesReferencia').value) {
             document.getElementById('mesReferencia').value = mesAtualISO();
@@ -495,6 +500,58 @@
 
         gerarRecorrentesDoMes();
         salvarERenderizar();
+    }
+
+    // --- BOTÃO DE RECONEXÃO MANUAL ---
+    function reconectarNuvem() {
+        let el = document.getElementById('statusNuvem');
+        el.innerText = "Sincronizando... 🔄";
+        el.style.color = "var(--primary)";
+
+        documentoGeral.get().then((doc) => {
+            if (doc.exists) {
+                const dados = doc.data();
+                lancamentos = dados.lancamentos || [];
+                dividas = dados.dividas || [];
+                compras = dados.compras || [];
+                listaMetas = dados.listaMetas || [];
+                orcamentos = dados.orcamentos || {};
+                
+                if(dados.titulo) document.getElementById('tituloApp').innerText = dados.titulo;
+                if(dados.baseRenda) document.getElementById('baseRenda').value = dados.baseRenda;
+                if(dados.mesReferencia) document.getElementById('mesReferencia').value = dados.mesReferencia;
+                
+                if(dados.simTransporte) {
+                    localStorage.setItem('simTransporte', JSON.stringify(dados.simTransporte));
+                    ['simUber','simParcela','simCombustivel','simManutencao'].forEach(id => { 
+                        if(dados.simTransporte[id] != null) document.getElementById(id).value = dados.simTransporte[id]; 
+                    });
+                }
+
+                if(dados.configGerais) {
+                    configGerais = dados.configGerais;
+                    document.getElementById('chkMim').checked = configGerais.chkMim ?? true;
+                    document.getElementById('chkDoar').checked = configGerais.chkDoar ?? true;
+                    document.getElementById('chkContas').checked = configGerais.chkContas ?? true;
+                    document.getElementById('chkInvest').checked = configGerais.chkInvest ?? true;
+                    document.getElementById('chkGuardar').checked = configGerais.chkGuardar ?? true;
+                    document.getElementById('chkLivre').checked = configGerais.chkLivre ?? true;
+                }
+                
+                localStorage.setItem('vitoria_backup', JSON.stringify(dados));
+                posLoad("Conectado ✅", "var(--success)");
+            } else {
+                el.innerText = "Conectado ✅";
+                el.style.color = "var(--success)";
+            }
+        }).catch((error) => {
+            console.error("Falha ao reconectar:", error);
+            el.innerText = "Modo Offline ⚠️ (Tocar de novo)";
+            el.style.color = "var(--warning)";
+            if(error.message.includes("permissions") || error.message.includes("Missing or insufficient")) {
+                alert("⚠️ O Google bloqueou a leitura. Verifique as Regras do Firestore.");
+            }
+        });
     }
 
     function salvarTitulo() { salvarERenderizar(); }
@@ -653,7 +710,6 @@
         document.getElementById('compraSubtotal').innerText = formataMoeda(quantidade * valorUnitario);
     }
 
-    // NOVA LÓGICA DE ATUALIZAÇÃO DA COMPRA (Silenciosa no Firebase para não perder foco)
     function atualizarValorCompra(id, campo) {
         const item = compras.find(i => i.id === id);
         if(!item) return;
@@ -665,7 +721,7 @@
         item.valorUnitario = novoValor;
         item.valor = Number(item.quantidade || 1) * (novoValor || 0);
         
-        // Em vez de recarregar tudo com o salvarERenderizar(), enviamos pro Google sem piscar a tela
+        // Envia pro Google sem piscar a tela
         salvarNuvemSilencioso();
 
         const totalLinha = document.getElementById(`total-item-${id}`);
@@ -848,6 +904,7 @@
         salvarNuvemSilencioso();
     }
 
+    // --- TRUQUE NINJA: Limpeza de dados invisíveis antes de enviar pro Google ---
     function salvarNuvemSilencioso() {
         let pacoteDados = {
             lancamentos: lancamentos,
@@ -862,11 +919,10 @@
             simTransporte: JSON.parse(localStorage.getItem('simTransporte') || '{}')
         };
         
-        // Backup Local Imediato
-        localStorage.setItem('vitoria_backup', JSON.stringify(pacoteDados));
+        let pacoteLimpo = JSON.parse(JSON.stringify(pacoteDados));
+        localStorage.setItem('vitoria_backup', JSON.stringify(pacoteLimpo));
         
-        // Envia para o Firebase
-        documentoGeral.set(pacoteDados).then(() => {
+        documentoGeral.set(pacoteLimpo).then(() => {
             let el = document.getElementById('statusNuvem');
             if(el) { el.innerText = "Conectado ✅"; el.style.color = "var(--success)"; }
         }).catch(err => {
@@ -1188,38 +1244,55 @@
         document.getElementById('b2TotalDist').innerText = formataMoeda(totalB2);
     }
 
-   function salvarNuvemSilencioso() {
-        let pacoteDados = {
-            lancamentos: lancamentos,
-            dividas: dividas,
-            compras: compras,
-            listaMetas: listaMetas,
-            orcamentos: orcamentos,
-            titulo: document.getElementById('tituloApp').innerText,
-            baseRenda: document.getElementById('baseRenda').value,
-            mesReferencia: document.getElementById('mesReferencia').value,
-            configGerais: configGerais,
-            simTransporte: JSON.parse(localStorage.getItem('simTransporte') || '{}')
-        };
+    function atualizarDashboardEGrafico() {
+        const mes = document.getElementById('mesReferencia').value || mesAtualISO();
+        const itensMes = lancamentos.filter(i => !i.data || i.data.startsWith(mes));
+        const totalEntradas = itensMes.filter(i => i.tipo === 'Entrada' && i.status === 'Pago').reduce((acc, i) => acc + Number(i.valor || 0), 0);
+        const totalSaidas = itensMes.filter(i => i.tipo === 'Saida' && i.status === 'Pago').reduce((acc, i) => acc + Number(i.valor || 0), 0);
+        const totalPendentes = itensMes.filter(i => i.tipo === 'Saida' && i.status === 'Pendente').reduce((acc, i) => acc + Number(i.valor || 0), 0);
+        const totalDividas = dividas.reduce((acc, i) => acc + saldoDivida(i), 0);
         
-        // 🛡️ O TRUQUE NINJA: Limpa qualquer "undefined" ou sujeira que o Google bloqueia
-        let pacoteLimpo = JSON.parse(JSON.stringify(pacoteDados));
+        let saldoGuardado = 0;
+        listaMetas.forEach(m => {
+            let saldo = (m.depositado || 0) - (m.retirado || 0);
+            if(saldo > 0) saldoGuardado += saldo;
+        });
+
+        const saldoMensal = totalEntradas - totalSaidas;
+
+        document.getElementById('dash-saldo').innerText = formataMoeda(saldoMensal);
+        document.getElementById('dash-saldo').style.color = saldoMensal >= 0 ? 'var(--success)' : 'var(--danger)';
+        document.getElementById('dash-dividas').innerText = formataMoeda(totalDividas);
+        document.getElementById('dash-guardado').innerText = formataMoeda(saldoGuardado);
+        document.getElementById('dash-pendente').innerText = formataMoeda(totalPendentes);
+        const saldoPrevisto = saldoMensal - totalPendentes;
+        document.getElementById('dash-previsto').innerText = formataMoeda(saldoPrevisto);
+        document.getElementById('dash-previsto').style.color = saldoPrevisto >= 0 ? 'var(--info)' : 'var(--danger)';
+
+        if(typeof Chart === 'undefined') return;
+        const ctx = document.getElementById('financeChart').getContext('2d');
+        if(chartInstance) chartInstance.destroy();
         
-        // Backup Local Imediato
-        localStorage.setItem('vitoria_backup', JSON.stringify(pacoteLimpo));
-        
-        // Envia para o Firebase a versão 100% limpa
-        documentoGeral.set(pacoteLimpo).then(() => {
-            let el = document.getElementById('statusNuvem');
-            if(el) { el.innerText = "Conectado ✅"; el.style.color = "var(--success)"; }
-        }).catch(err => {
-            console.error("Falha no envio para nuvem:", err);
-            let el = document.getElementById('statusNuvem');
-            if(el) { el.innerText = "Salvo Localmente ⚠️"; el.style.color = "var(--warning)"; }
-            
-            // Alerta na tela se o problema for a porta trancada no Google
-            if(err.message.includes("permissions") || err.message.includes("Missing or insufficient")) {
-                alert("⚠️ O Google bloqueou o salvamento! Você precisa abrir as Regras do FIRESTORE DATABASE.");
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Entradas', 'Saídas Pagas', 'Pendentes', 'Total Dívidas', 'Metas Guardadas'],
+                datasets: [{
+                    label: 'Resumo (R$)',
+                    data: [totalEntradas, totalSaidas, totalPendentes, totalDividas, saldoGuardado],
+                    backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#fb7185', '#a855f7'],
+                    borderWidth: 0,
+                    borderRadius: 4
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { ticks: { color: '#a1a1aa' }, grid: { color: '#27272a' } },
+                    x: { ticks: { color: '#a1a1aa' }, grid: { display: false } }
+                }
             }
         });
     }
