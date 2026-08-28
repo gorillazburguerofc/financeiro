@@ -7,15 +7,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            /* Nova Paleta Preto e Roxo */
-            --primary: #a855f7; /* Roxo vibrante */
+            var(--primary): #a855f7;
+            --primary: #a855f7; 
             --primary-hover: #9333ea;
-            --bg-dark: #000000; /* Fundo Preto */
-            --bg-card: #121212; /* Fundo dos cartões um pouco mais claro que o preto */
+            --bg-dark: #000000; 
+            --bg-card: #121212; 
             --text-light: #f8fafc;
             --danger: #ef4444;
             --success: #10b981;
             --info: #3b82f6;
+            --warning: #f59e0b;
             --border: #27272a;
         }
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -26,34 +27,30 @@
         h1:hover, h1:focus { background: #1a1a1a; border: 1px dashed var(--primary); }
         h2 { border-bottom: 1px solid var(--border); padding-bottom: 5px; color: var(--primary); display: flex; justify-content: space-between; align-items: center; font-size: 18px; flex-wrap: wrap; gap: 10px;}
         
-        /* Ajuste de Grid para Celular e Desktop */
         .container { max-width: 1200px; margin: 0 auto; display: grid; gap: 20px; grid-template-columns: 1fr; }
         @media (min-width: 992px) { .container { grid-template-columns: 1fr 1fr; } }
         
         .card { background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(168, 85, 247, 0.05); }
         .full-width { grid-column: 1 / -1; }
         
-        /* Font-size 16px evita o zoom automático no celular */
         input, select, button { width: 100%; padding: 12px; margin: 5px 0 15px; border-radius: 6px; border: 1px solid var(--border); background: #18181b; color: white; font-size: 16px; }
-        input[type="checkbox"] { width: 24px; height: 24px; margin: 0; accent-color: var(--primary); }
+        input[type="checkbox"] { width: 24px; height: 24px; margin: 0; accent-color: var(--primary); cursor: pointer; }
         
         button { background: var(--primary); color: #fff; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; padding: 14px; font-size: 16px; }
         button:hover { background: var(--primary-hover); }
         
         .btn-small { width: auto; padding: 8px 12px; margin: 2px; font-size: 14px; border-radius: 4px; }
         .btn-clone { background: var(--info); color: white; }
-        .btn-edit { background: var(--primary); color: white; }
+        .btn-edit { background: var(--warning); color: white; }
         .btn-del { background: var(--danger); color: white; }
         .btn-cancel { background: var(--danger); color: white; display: none; }
         
-        /* Tabelas Responsivas com rolagem horizontal */
         .table-responsive { width: 100%; overflow-x: auto; margin-top: 10px; border-radius: 6px; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: 14px; }
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
         th { color: var(--primary); background: #18181b; white-space: nowrap; }
         td { background: var(--bg-card); }
         
-        /* Ajuste dos Flex-rows para quebrar linha em telas pequenas */
         .flex-row { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
         .flex-row > * { flex: 1; min-width: 100%; }
         @media (min-width: 600px) { .flex-row > * { min-width: 150px; } }
@@ -63,62 +60,62 @@
         
         .progress-bar { background: #27272a; width: 100%; height: 24px; border-radius: 12px; overflow: hidden; margin-top: 10px; }
         .progress-fill { background: var(--primary); width: 0%; height: 100%; transition: width 0.5s; text-align: center; font-size: 13px; line-height: 24px; color: #fff; font-weight: bold; }
+
+        /* Estilos do Dashboard Cards */
+        .dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .dash-card { background: #18181b; padding: 15px; border-radius: 8px; border-left: 4px solid; }
+        .dash-card h3 { margin: 0 0 5px 0; font-size: 14px; color: #a1a1aa; }
+        .dash-card p { margin: 0; font-size: 24px; font-weight: bold; }
+
+        .meta-card { background: #18181b; padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
 <header>
     <h1 contenteditable="true" id="tituloApp" onblur="salvarTitulo()">🦍 Gorillas - Gestão Financeira Pessoal</h1>
-    <p style="color: #a1a1aa; font-size: 14px;">Sua rota de fuga e construção de império.</p>
+    <p style="color: #a1a1aa; font-size: 14px;">Visão Geral e Controle Tático.</p>
 </header>
 
 <div class="container">
     
-    <!-- DASHBOARD -->
+    <!-- DASHBOARD EXECUTIVO -->
     <div class="card full-width">
-        <h2>Dashboard Resumo</h2>
+        <h2>Dashboard Executivo (Resumo Geral)</h2>
+        <div class="dash-cards">
+            <div class="dash-card" style="border-color: var(--success);">
+                <h3>Saldo Mensal (Entradas - Saídas)</h3>
+                <p id="dash-saldo" style="color: var(--success);">R$ 0,00</p>
+            </div>
+            <div class="dash-card" style="border-color: var(--danger);">
+                <h3>Total em Dívidas</h3>
+                <p id="dash-dividas" style="color: var(--danger);">R$ 0,00</p>
+            </div>
+            <div class="dash-card" style="border-color: var(--primary);">
+                <h3>Total Guardado (Metas)</h3>
+                <p id="dash-guardado" style="color: var(--primary);">R$ 0,00</p>
+            </div>
+        </div>
         <div style="height: 250px; position: relative;">
             <canvas id="financeChart"></canvas>
         </div>
     </div>
 
-    <!-- POUPANÇA E METAS -->
+    <!-- POUPANÇA E MULTI-METAS -->
     <div class="card full-width" style="border-left: 4px solid var(--primary);">
-        <h2>Metas e Poupança</h2>
-        <div class="flex-row">
-            <div>
-                <label style="font-size: 13px; color: #a1a1aa;">Valor da Meta (R$)</label>
-                <input type="number" id="metaTotal" placeholder="Ex: 10000" oninput="atualizarMetas()">
-            </div>
-            <div>
-                <label style="font-size: 13px; color: #a1a1aa;">Depositar (R$)</label>
-                <div style="display:flex; gap:5px;">
-                    <input type="number" id="valorDeposito" placeholder="0.00" style="margin:0;">
-                    <button class="btn-small" style="margin:0; background: var(--success);" onclick="movimentarPoupanca('deposito')">⬆️ Salvar</button>
-                </div>
-            </div>
-            <div>
-                <label style="font-size: 13px; color: #a1a1aa;">Retirar (R$)</label>
-                <div style="display:flex; gap:5px;">
-                    <input type="number" id="valorRetirada" placeholder="0.00" style="margin:0;">
-                    <button class="btn-small" style="margin:0; background: var(--danger);" onclick="movimentarPoupanca('retirada')">⬇️ Tirar</button>
-                </div>
+        <h2>Metas e Diversificação <span id="lblTotalMetas" style="color: var(--primary); font-size: 16px;">Total Guardado: R$ 0,00</span></h2>
+        
+        <div class="flex-row" style="background: #18181b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <div><label style="font-size: 13px; color: #a1a1aa;">Nome da Meta</label><input type="text" id="novaMetaNome" placeholder="Ex: Reserva de Emergência"></div>
+            <div><label style="font-size: 13px; color: #a1a1aa;">Valor Alvo (R$)</label><input type="number" id="novaMetaValor" placeholder="Ex: 10000"></div>
+            <div style="display:flex; align-items:flex-end;">
+                <button id="btn-salvar-meta" onclick="addMeta()" style="margin:0;">➕ Criar Meta</button>
+                <button id="btn-cancel-meta" class="btn-cancel" style="margin:0; margin-left: 10px;" onclick="cancelarEdicaoMeta()">Cancelar</button>
             </div>
         </div>
-        
-        <div style="margin-top: 15px; background: #18181b; padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
-            <div class="flex-row" style="justify-content: space-between; margin-bottom: 10px; font-size: 15px;">
-                <span style="color: var(--success); min-width: auto;">Guardado: <strong id="lblDepositado">R$ 0,00</strong></span>
-                <span style="color: var(--danger); min-width: auto;">Retirado: <strong id="lblRetirado">R$ 0,00</strong></span>
-                <span style="font-size: 1.1em; color: var(--primary); min-width: auto;">Saldo: <strong id="lblSaldoPoupanca">R$ 0,00</strong></span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 13px; color: #a1a1aa;">
-                <span>Progresso da Meta</span>
-                <span id="lblPorcentagemMeta">0%</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="barraMeta"></div>
-            </div>
+
+        <div id="listaMetasContainer">
+            <!-- As metas renderizadas entrarão aqui -->
         </div>
     </div>
 
@@ -218,11 +215,11 @@
         
         <div class="table-responsive">
             <table id="tabelaCompras">
-                <thead><tr><th>Item</th><th>Preço</th><th>Ações</th></tr></thead>
+                <thead><tr><th>OK</th><th>Item</th><th>Preço</th><th>Ações</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
-        <div class="total-box" id="totalCompras">Total: R$ 0,00</div>
+        <div class="total-box" id="totalCompras">Total Planejado: R$ 0,00</div>
     </div>
 
     <!-- BASES FINANCEIRAS -->
@@ -257,9 +254,9 @@
     let lancamentos = JSON.parse(localStorage.getItem('lancamentos')) || [];
     let dividas = JSON.parse(localStorage.getItem('dividas')) || [];
     let compras = JSON.parse(localStorage.getItem('compras')) || [];
-    let metas = JSON.parse(localStorage.getItem('metas')) || { depositado: 0, retirado: 0, valorMeta: 0 };
+    let listaMetas = JSON.parse(localStorage.getItem('listaMetas')) || [];
     
-    let editandoId = { lancamento: null, divida: null, compra: null };
+    let editandoId = { lancamento: null, divida: null, compra: null, meta: null };
     let chartInstance = null;
 
     // --- FUNÇÕES INICIAIS E UTILITÁRIOS ---
@@ -271,8 +268,6 @@
         
         let rendaSalva = localStorage.getItem('baseRenda');
         if(rendaSalva) document.getElementById('baseRenda').value = rendaSalva;
-        
-        document.getElementById('metaTotal').value = metas.valorMeta || '';
         
         salvarERenderizar();
     };
@@ -304,10 +299,9 @@
             cancelarEdicao('lancamento');
         } else {
             lancamentos.push(item);
+            document.getElementById('lancDesc').value = '';
+            document.getElementById('lancValor').value = '';
         }
-        
-        document.getElementById('lancDesc').value = '';
-        document.getElementById('lancValor').value = '';
         salvarERenderizar();
     }
 
@@ -325,8 +319,9 @@
         editandoId.lancamento = id;
         let btn = document.getElementById('btn-salvar-lanc');
         btn.innerText = "✓ Atualizar Lançamento";
-        btn.style.background = "var(--primary-hover)";
+        btn.style.background = "var(--warning)";
         document.getElementById('btn-cancel-lanc').style.display = "block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // --- FUNÇÕES DE DÍVIDAS ---
@@ -350,11 +345,10 @@
             cancelarEdicao('divida');
         } else {
             dividas.push(item);
+            document.getElementById('divNome').value = '';
+            document.getElementById('divValorOriginal').value = '';
+            document.getElementById('divValorAtual').value = '';
         }
-        
-        document.getElementById('divNome').value = '';
-        document.getElementById('divValorOriginal').value = '';
-        document.getElementById('divValorAtual').value = '';
         salvarERenderizar();
     }
 
@@ -369,7 +363,7 @@
         editandoId.divida = id;
         let btn = document.getElementById('btn-salvar-div');
         btn.innerText = "✓ Atualizar Dívida";
-        btn.style.background = "var(--primary-hover)";
+        btn.style.background = "var(--warning)";
         document.getElementById('btn-cancel-div').style.display = "block";
     }
 
@@ -383,7 +377,8 @@
         const item = {
             id: editandoId.compra || Date.now(),
             nome: nome,
-            valor: valor
+            valor: valor,
+            comprado: editandoId.compra ? compras.find(i => i.id === editandoId.compra).comprado : false
         };
 
         if(editandoId.compra) {
@@ -392,10 +387,9 @@
             cancelarEdicao('compra');
         } else {
             compras.push(item);
+            document.getElementById('compraItem').value = '';
+            document.getElementById('compraValor').value = '';
         }
-        
-        document.getElementById('compraItem').value = '';
-        document.getElementById('compraValor').value = '';
         salvarERenderizar();
     }
 
@@ -408,8 +402,98 @@
         editandoId.compra = id;
         let btn = document.getElementById('btn-salvar-compra');
         btn.innerText = "✓ Atualizar Compra";
-        btn.style.background = "var(--primary-hover)";
+        btn.style.background = "var(--warning)";
         document.getElementById('btn-cancel-compra').style.display = "block";
+    }
+
+    function toggleCompra(id) {
+        let item = compras.find(i => i.id === id);
+        if(item) {
+            item.comprado = !item.comprado;
+            salvarERenderizar();
+        }
+    }
+
+    // --- MULTI-METAS ---
+    function addMeta() {
+        const nome = document.getElementById('novaMetaNome').value;
+        const valor = parseFloat(document.getElementById('novaMetaValor').value) || 0;
+        
+        if(!nome || valor <= 0) return alert("Preencha nome e valor alvo da meta!");
+
+        const item = {
+            id: editandoId.meta || Date.now(),
+            nome: nome,
+            valorAlvo: valor,
+            depositado: editandoId.meta ? listaMetas.find(m => m.id === editandoId.meta).depositado : 0,
+            retirado: editandoId.meta ? listaMetas.find(m => m.id === editandoId.meta).retirado : 0
+        };
+
+        if(editandoId.meta) {
+            let index = listaMetas.findIndex(m => m.id === editandoId.meta);
+            if(index !== -1) listaMetas[index] = item;
+            cancelarEdicaoMeta();
+        } else {
+            listaMetas.push(item);
+            document.getElementById('novaMetaNome').value = '';
+            document.getElementById('novaMetaValor').value = '';
+        }
+        salvarERenderizar();
+    }
+
+    function transacaoMeta(id, tipo) {
+        let valor = parseFloat(prompt(`Digite o valor para ${tipo === 'in' ? 'DEPOSITAR' : 'RETIRAR'} na meta:`));
+        if(!valor || valor <= 0) return;
+        
+        let meta = listaMetas.find(m => m.id === id);
+        if(meta) {
+            if(tipo === 'in') meta.depositado += valor;
+            if(tipo === 'out') meta.retirado += valor;
+            salvarERenderizar();
+        }
+    }
+
+    function editarValoresMeta(id) {
+        let meta = listaMetas.find(m => m.id === id);
+        if(!meta) return;
+        
+        let novoDepositado = prompt(`Corrigir Total Depositado (Atual: R$ ${meta.depositado}):`, meta.depositado);
+        let novoRetirado = prompt(`Corrigir Total Retirado (Atual: R$ ${meta.retirado}):`, meta.retirado);
+        
+        if(novoDepositado !== null) meta.depositado = parseFloat(novoDepositado) || 0;
+        if(novoRetirado !== null) meta.retirado = parseFloat(novoRetirado) || 0;
+        
+        salvarERenderizar();
+    }
+
+    function editarMetaBase(id) {
+        let meta = listaMetas.find(m => m.id === id);
+        if(!meta) return;
+        document.getElementById('novaMetaNome').value = meta.nome;
+        document.getElementById('novaMetaValor').value = meta.valorAlvo;
+        
+        editandoId.meta = id;
+        let btn = document.getElementById('btn-salvar-meta');
+        btn.innerText = "✓ Atualizar Meta";
+        btn.style.background = "var(--warning)";
+        document.getElementById('btn-cancel-meta').style.display = "block";
+    }
+
+    function cancelarEdicaoMeta() {
+        editandoId.meta = null;
+        document.getElementById('novaMetaNome').value = '';
+        document.getElementById('novaMetaValor').value = '';
+        let btn = document.getElementById('btn-salvar-meta');
+        btn.innerText = "➕ Criar Meta"; 
+        btn.style.background = "var(--primary)";
+        document.getElementById('btn-cancel-meta').style.display = "none";
+    }
+
+    function deletarMeta(id) {
+        if(confirm("Tem certeza que deseja excluir esta meta?")) {
+            listaMetas = listaMetas.filter(m => m.id !== id);
+            salvarERenderizar();
+        }
     }
 
     // --- CANCELAR EDIÇÃO GLOBAL ---
@@ -435,7 +519,6 @@
         }
     }
 
-    // --- AÇÕES GLOBAIS (Deletar e Clonar) ---
     function deletar(tipo, id) {
         if(confirm("Tem certeza que deseja excluir?")) {
             if(tipo === 'lancamentos') lancamentos = lancamentos.filter(i => i.id !== id);
@@ -455,56 +538,19 @@
         }
     }
 
-    // --- METAS E POUPANÇA ---
-    function movimentarPoupanca(tipo) {
-        if(tipo === 'deposito') {
-            let val = parseFloat(document.getElementById('valorDeposito').value);
-            if(val > 0) metas.depositado += val;
-            document.getElementById('valorDeposito').value = '';
-        } else {
-            let val = parseFloat(document.getElementById('valorRetirada').value);
-            if(val > 0) metas.retirado += val;
-            document.getElementById('valorRetirada').value = '';
-        }
-        atualizarMetas();
-    }
-
-    function atualizarMetas() {
-        metas.valorMeta = parseFloat(document.getElementById('metaTotal').value) || 0;
-        localStorage.setItem('metas', JSON.stringify(metas));
-        
-        let saldo = metas.depositado - metas.retirado;
-        if(saldo < 0) saldo = 0;
-
-        document.getElementById('lblDepositado').innerText = formataMoeda(metas.depositado);
-        document.getElementById('lblRetirado').innerText = formataMoeda(metas.retirado);
-        document.getElementById('lblSaldoPoupanca').innerText = formataMoeda(saldo);
-
-        let porcentagem = 0;
-        if(metas.valorMeta > 0) {
-            porcentagem = (saldo / metas.valorMeta) * 100;
-            if(porcentagem > 100) porcentagem = 100;
-        }
-
-        document.getElementById('lblPorcentagemMeta').innerText = porcentagem.toFixed(1) + '%';
-        document.getElementById('barraMeta').style.width = porcentagem + '%';
-        
-        if(porcentagem > 0) document.getElementById('barraMeta').innerText = porcentagem.toFixed(0) + '%';
-        else document.getElementById('barraMeta').innerText = '';
-    }
-
     // --- RENDERIZADORES ---
     function salvarERenderizar() {
         localStorage.setItem('lancamentos', JSON.stringify(lancamentos));
         localStorage.setItem('dividas', JSON.stringify(dividas));
         localStorage.setItem('compras', JSON.stringify(compras));
+        localStorage.setItem('listaMetas', JSON.stringify(listaMetas));
         
         renderLancamentos();
         renderDividas();
         renderCompras();
+        renderMetas();
         calcularBases();
-        atualizarMetas();
-        atualizarGrafico();
+        atualizarDashboardEGrafico();
     }
 
     function renderLancamentos() {
@@ -531,7 +577,6 @@
     function renderDividas() {
         const tbody = document.querySelector('#tabelaDividas tbody');
         tbody.innerHTML = '';
-        
         dividas.sort((a, b) => a.vAtual - b.vAtual);
         let total = 0;
 
@@ -560,9 +605,13 @@
         compras.forEach(i => {
             total += i.valor;
             let displayValor = i.valor > 0 ? formataMoeda(i.valor) : '<span style="color:#a1a1aa;">À definir</span>';
+            let estiloNome = i.comprado ? 'text-decoration: line-through; color: #a1a1aa;' : '';
+            
             tbody.innerHTML += `
-                <tr>
-                    <td>${i.nome}</td><td>${displayValor}</td>
+                <tr style="${i.comprado ? 'opacity: 0.6;' : ''}">
+                    <td><input type="checkbox" onchange="toggleCompra(${i.id})" ${i.comprado ? 'checked' : ''}></td>
+                    <td style="${estiloNome}">${i.nome}</td>
+                    <td style="${estiloNome}">${displayValor}</td>
                     <td style="min-width: 140px;">
                         <button class="btn-small btn-edit" onclick="editarCompra(${i.id})">✏️</button>
                         <button class="btn-small btn-clone" onclick="clonar('compras', ${i.id})">📄</button>
@@ -571,10 +620,52 @@
                 </tr>
             `;
         });
-        document.getElementById('totalCompras').innerText = `Total: ${formataMoeda(total)}`;
+        document.getElementById('totalCompras').innerText = `Total Planejado: ${formataMoeda(total)}`;
     }
 
-    // --- CÁLCULO DE BASES ---
+    function renderMetas() {
+        const container = document.getElementById('listaMetasContainer');
+        container.innerHTML = '';
+        let saldoTotalGeral = 0;
+
+        listaMetas.forEach(m => {
+            let saldo = (m.depositado || 0) - (m.retirado || 0);
+            if(saldo < 0) saldo = 0;
+            saldoTotalGeral += saldo;
+
+            let porcentagem = m.valorAlvo > 0 ? (saldo / m.valorAlvo) * 100 : 0;
+            if(porcentagem > 100) porcentagem = 100;
+
+            container.innerHTML += `
+                <div class="meta-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <strong style="font-size: 16px; color: var(--text-light);">${m.nome}</strong>
+                        <div>
+                            <button class="btn-small btn-edit" onclick="editarMetaBase(${m.id})">✏️</button>
+                            <button class="btn-small btn-del" onclick="deletarMeta(${m.id})">X</button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-row" style="margin-bottom: 10px; font-size: 14px;">
+                        <span style="color: var(--primary);">Alvo: <strong>${formataMoeda(m.valorAlvo)}</strong></span>
+                        <span style="color: var(--success);">Saldo Atual: <strong>${formataMoeda(saldo)}</strong></span>
+                    </div>
+
+                    <div class="progress-bar" style="margin-bottom: 15px;">
+                        <div class="progress-fill" style="width: ${porcentagem}%;">${porcentagem > 0 ? porcentagem.toFixed(0)+'%' : ''}</div>
+                    </div>
+
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <button class="btn-small" style="background: var(--success); flex:1;" onclick="transacaoMeta(${m.id}, 'in')">➕ Depositar</button>
+                        <button class="btn-small" style="background: var(--danger); flex:1;" onclick="transacaoMeta(${m.id}, 'out')">➖ Retirar</button>
+                        <button class="btn-small" style="background: #3f3f46; color: white; flex:1;" onclick="editarValoresMeta(${m.id})">⚙️ Ajustar Valores Livres</button>
+                    </div>
+                </div>
+            `;
+        });
+        document.getElementById('lblTotalMetas').innerText = `Total Guardado: ${formataMoeda(saldoTotalGeral)}`;
+    }
+
     function calcularBases() {
         const renda = parseFloat(document.getElementById('baseRenda').value) || 0;
         
@@ -599,35 +690,51 @@
         document.getElementById('b2TotalDist').innerText = formataMoeda(totalB2);
     }
 
-    // --- GRÁFICO ---
-    function atualizarGrafico() {
+    // --- DASHBOARD E GRÁFICO ---
+    function atualizarDashboardEGrafico() {
         const totalEntradas = lancamentos.filter(i => i.tipo === 'Entrada').reduce((acc, i) => acc + i.valor, 0);
         const totalSaidas = lancamentos.filter(i => i.tipo === 'Saida').reduce((acc, i) => acc + i.valor, 0);
         const totalDividas = dividas.reduce((acc, i) => acc + i.vAtual, 0);
+        
+        let saldoGuardado = 0;
+        listaMetas.forEach(m => {
+            let saldo = (m.depositado || 0) - (m.retirado || 0);
+            if(saldo > 0) saldoGuardado += saldo;
+        });
 
+        const saldoMensal = totalEntradas - totalSaidas;
+
+        // Atualizar Textos do Dashboard
+        document.getElementById('dash-saldo').innerText = formataMoeda(saldoMensal);
+        document.getElementById('dash-saldo').style.color = saldoMensal >= 0 ? 'var(--success)' : 'var(--danger)';
+        document.getElementById('dash-dividas').innerText = formataMoeda(totalDividas);
+        document.getElementById('dash-guardado').innerText = formataMoeda(saldoGuardado);
+
+        // Atualizar Gráfico
         const ctx = document.getElementById('financeChart').getContext('2d');
         if(chartInstance) chartInstance.destroy();
         
         chartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Entradas', 'Saídas', 'Total Dívidas a Pagar'],
+                labels: ['Entradas', 'Saídas', 'Total Dívidas', 'Metas Guardadas'],
                 datasets: [{
                     label: 'Resumo (R$)',
-                    data: [totalEntradas, totalSaidas, totalDividas],
-                    backgroundColor: ['#10b981', '#ef4444', '#a855f7'],
-                    borderWidth: 0
+                    data: [totalEntradas, totalSaidas, totalDividas, saldoGuardado],
+                    backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#a855f7'],
+                    borderWidth: 0,
+                    borderRadius: 4
                 }]
             },
             options: { 
                 responsive: true, 
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { labels: { color: '#f8fafc' } }
+                    legend: { display: false }
                 },
                 scales: {
                     y: { ticks: { color: '#a1a1aa' }, grid: { color: '#27272a' } },
-                    x: { ticks: { color: '#a1a1aa' }, grid: { color: '#27272a' } }
+                    x: { ticks: { color: '#a1a1aa' }, grid: { display: false } }
                 }
             }
         });
