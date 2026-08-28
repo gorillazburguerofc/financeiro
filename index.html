@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gorillas Financeiro - Nuvem</title>
+    <title>Vitória - Gestão Financeira Pessoal</title>
     
     <!-- Bibliotecas e Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- SDKs do Firebase (Versão 8 Compat para rodar nativamente em arquivo único) -->
+    <!-- SDKs do Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -33,7 +33,9 @@
         h1:hover, h1:focus { background: #1a1a1a; border: 1px dashed var(--primary); }
         h2 { border-bottom: 1px solid var(--border); padding-bottom: 5px; color: var(--primary); display: flex; justify-content: space-between; align-items: center; font-size: 18px; flex-wrap: wrap; gap: 10px;}
         
+        /* Status e Loader da Nuvem */
         .status-nuvem { position: absolute; right: 10px; top: 10px; font-size: 12px; color: var(--success); font-weight: bold;}
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 9999; color: var(--primary); font-size: 20px; font-weight: bold;}
 
         .container { max-width: 1200px; margin: 0 auto; display: grid; gap: 20px; grid-template-columns: 1fr; }
         @media (min-width: 992px) { .container { grid-template-columns: 1fr 1fr; } }
@@ -75,26 +77,58 @@
         .dash-card p { margin: 0; font-size: 24px; font-weight: bold; }
 
         .meta-card { background: #18181b; padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; }
-        
-        /* Overlay Carregamento Inicial */
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 9999; color: var(--primary); font-size: 20px; font-weight: bold;}
+        .toolbar { max-width: 1200px; margin: 0 auto 20px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .toolbar button, .toolbar label { width: auto; flex: 1; min-width: 145px; margin: 0; text-align: center; }
+        .toolbar label { background: #18181b; border: 1px solid var(--border); border-radius: 6px; padding: 13px; cursor: pointer; font-weight: bold; }
+        .toolbar input[type="file"] { display: none; }
+        .subtle { color: #a1a1aa; font-size: 13px; }
+        .pill { display: inline-block; padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: bold; }
+        .pill-success { background: rgba(16,185,129,.16); color: var(--success); }
+        .pill-danger { background: rgba(239,68,68,.16); color: var(--danger); }
+        .pill-warning { background: rgba(245,158,11,.16); color: var(--warning); }
+        .budget-row { background: #18181b; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+        .budget-head { display:flex; justify-content:space-between; gap:10px; margin-bottom:8px; }
+        .empty-state { text-align:center; padding:18px; color:#71717a; }
+        .danger-outline { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+        .info-outline { background: transparent; border: 1px solid var(--info); color: #93c5fd; }
+        @media (max-width: 599px) {
+            body { padding: 8px; }
+            .card { padding: 14px; }
+            h1 { font-size: 20px; }
+            h2 { font-size: 16px; }
+            .dash-card p { font-size: 20px; }
+            .toolbar button, .toolbar label { min-width: calc(50% - 8px); }
+        }
+        @media print {
+            body { background:#fff; color:#111; }
+            .toolbar, button, input, select, .checkbox-group { display:none !important; }
+            .card, .meta-card, .budget-row, .dash-card { background:#fff; color:#111; border-color:#bbb; box-shadow:none; break-inside:avoid; }
+            td, th { background:#fff; color:#111; }
+        }
     </style>
 </head>
 <body>
 
-<div id="loader">Conectando ao Firebase... 🦍☁️</div>
+<div id="loader">Conectando ao Firebase... ☁️</div>
 
 <header>
     <div class="status-nuvem" id="statusNuvem">Conectado ✅</div>
-    <h1 contenteditable="true" id="tituloApp" onblur="salvarTitulo()">🦍 Gorillas - Gestão Financeira</h1>
-    <p style="color: #a1a1aa; font-size: 14px;">Visão Geral e Controle Tático.</p>
+    <h1 contenteditable="true" id="tituloApp" onblur="salvarTitulo()">Vitória - Gestão Financeira Pessoal</h1>
+    <p style="color: #a1a1aa; font-size: 14px;">Visão geral, metas e controle do seu dinheiro.</p>
 </header>
+
+<div class="toolbar">
+    <button class="info-outline" onclick="exportarBackup()">💾 Salvar Backup Local</button>
+    <label>📂 Restaurar Backup<input type="file" id="arquivoBackup" accept="application/json" onchange="importarBackup(event)"></label>
+    <button class="info-outline" onclick="exportarCSV()">📊 Exportar CSV</button>
+    <button class="info-outline" onclick="window.print()">🖨️ Imprimir / PDF</button>
+</div>
 
 <div class="container">
     
     <!-- DASHBOARD EXECUTIVO -->
     <div class="card full-width">
-        <h2>Dashboard Executivo (Resumo Geral)</h2>
+        <h2>Dashboard Executivo (Resumo Geral) <input type="month" id="mesReferencia" onchange="salvarMesReferencia()" style="width:auto; margin:0;"></h2>
         <div class="dash-cards">
             <div class="dash-card" style="border-color: var(--success);">
                 <h3>Saldo Mensal (Entradas - Saídas)</h3>
@@ -108,10 +142,35 @@
                 <h3>Total Guardado (Metas)</h3>
                 <p id="dash-guardado" style="color: var(--primary);">R$ 0,00</p>
             </div>
+            <div class="dash-card" style="border-color: var(--warning);">
+                <h3>Contas Pendentes no Mês</h3>
+                <p id="dash-pendente" style="color: var(--warning);">R$ 0,00</p>
+            </div>
+            <div class="dash-card" style="border-color: var(--info);">
+                <h3>Saldo Previsto após Pendências</h3>
+                <p id="dash-previsto" style="color: var(--info);">R$ 0,00</p>
+            </div>
         </div>
         <div style="height: 250px; position: relative;">
             <canvas id="financeChart"></canvas>
         </div>
+    </div>
+
+    <!-- ORÇAMENTO POR CATEGORIA -->
+    <div class="card full-width">
+        <h2>Orçamento Mensal por Categoria <span id="lblOrcamentoStatus" class="subtle"></span></h2>
+        <p class="subtle">Defina o máximo que deseja gastar em cada categoria. O sistema compara automaticamente com as saídas do mês selecionado.</p>
+        <div class="flex-row">
+            <select id="orcCategoria">
+                <option value="Alimentacao">Alimentação</option><option value="Moradia">Moradia</option>
+                <option value="Transporte">Transporte</option><option value="Saude">Saúde</option>
+                <option value="Educacao">Educação</option><option value="Lazer">Lazer</option>
+                <option value="Dividas">Dívidas</option><option value="Outros">Outros</option>
+            </select>
+            <input type="number" id="orcLimite" placeholder="Limite mensal (R$)">
+            <button onclick="salvarOrcamento()">✓ Salvar Limite</button>
+        </div>
+        <div id="listaOrcamentos"></div>
     </div>
 
     <!-- POUPANÇA E MULTI-METAS -->
@@ -119,7 +178,7 @@
         <h2>Metas e Diversificação <span id="lblTotalMetas" style="color: var(--primary); font-size: 16px;">Total Guardado: R$ 0,00</span></h2>
         
         <div class="flex-row" style="background: #18181b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            <div><label style="font-size: 13px; color: #a1a1aa;">Nome da Meta</label><input type="text" id="novaMetaNome" placeholder="Ex: Reserva Decants"></div>
+            <div><label style="font-size: 13px; color: #a1a1aa;">Nome da Meta</label><input type="text" id="novaMetaNome" placeholder="Ex: Reserva Viagem"></div>
             <div><label style="font-size: 13px; color: #a1a1aa;">Valor Alvo (R$)</label><input type="number" id="novaMetaValor" placeholder="Ex: 5000"></div>
             <div style="display:flex; align-items:flex-end;">
                 <button id="btn-salvar-meta" onclick="addMeta()" style="margin:0;">➕ Criar Meta</button>
@@ -145,6 +204,10 @@
                 <option value="Alimentacao">Alimentação</option>
                 <option value="Moradia">Moradia</option>
                 <option value="Transporte">Transporte</option>
+                <option value="Saude">Saúde</option>
+                <option value="Educacao">Educação</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Dividas">Dívidas</option>
                 <option value="Outros">Outros</option>
             </select>
         </div>
@@ -164,11 +227,20 @@
                 <option value="Pendente">Pendente</option>
             </select>
         </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="lancRecorrente">
+            <span>Repetir este lançamento automaticamente todos os meses</span>
+        </div>
         <div class="flex-row" style="margin-top: 10px;">
             <button id="btn-salvar-lanc" onclick="addLancamento()">➕ Adicionar Lançamento</button>
             <button id="btn-cancel-lanc" class="btn-cancel" onclick="cancelarEdicao('lancamento')">Cancelar Edição</button>
         </div>
         
+        <div class="flex-row" style="background:#18181b; padding:10px; border-radius:8px; margin-top:12px;">
+            <input type="search" id="filtroTexto" placeholder="🔎 Pesquisar descrição" oninput="renderLancamentos()">
+            <select id="filtroTipo" onchange="renderLancamentos()"><option value="">Todos os tipos</option><option value="Entrada">Entradas</option><option value="Saida">Saídas</option></select>
+            <select id="filtroStatus" onchange="renderLancamentos()"><option value="">Todos os status</option><option value="Pago">Pago</option><option value="Pendente">Pendente</option></select>
+        </div>
         <div class="table-responsive">
             <table id="tabelaLancamentos">
                 <thead>
@@ -177,6 +249,13 @@
                 <tbody></tbody>
             </table>
         </div>
+    </div>
+
+    <!-- VENCIMENTOS -->
+    <div class="card full-width">
+        <h2>Calendário de Vencimentos <span id="lblVencimentos" class="subtle"></span></h2>
+        <p class="subtle">Contas pendentes são organizadas pela data. Use o botão “Pagar” para atualizar o status sem editar o lançamento.</p>
+        <div id="listaVencimentos"></div>
     </div>
 
     <!-- DÍVIDAS E CONTAS -->
@@ -195,7 +274,12 @@
                 <option value="Avulsa">Conta Avulsa</option>
             </select>
             <input type="number" id="divValorOriginal" placeholder="Valor Original (R$)">
-            <input type="number" id="divValorAtual" placeholder="Por quanto está saindo? (R$)">
+            <input type="number" id="divValorAtual" placeholder="Valor negociado total (R$)">
+        </div>
+        <div class="flex-row">
+            <input type="number" id="divParcelas" min="1" placeholder="Total de parcelas (ex.: 10)">
+            <input type="number" id="divPagas" min="0" placeholder="Parcelas já pagas (ex.: 2)">
+            <input type="date" id="divVencimento" title="Próximo vencimento">
         </div>
         <div class="flex-row" style="margin-top: 10px;">
             <button id="btn-salvar-div" onclick="addDivida()">➕ Adicionar Dívida</button>
@@ -205,19 +289,50 @@
         <div class="table-responsive">
             <table id="tabelaDividas">
                 <thead>
-                    <tr><th>Conta</th><th>Tipo</th><th>V. Original</th><th>V. Atual (A Pagar)</th><th>Ações</th></tr>
+                    <tr><th>Conta</th><th>Tipo</th><th>V. Original</th><th>Parcela</th><th>Progresso</th><th>Saldo Devedor</th><th>Próx. Venc.</th><th>Ações</th></tr>
                 </thead>
                 <tbody></tbody>
             </table>
         </div>
     </div>
 
-    <!-- LISTA DE COMPRAS -->
+    <!-- RELATÓRIO DO MÊS -->
     <div class="card">
-        <h2>Lista de Compras (Casa)</h2>
+        <h2>Relatório Mensal Automático</h2>
+        <div id="relatorioMensal" class="meta-card"></div>
+    </div>
+
+    <!-- COMPARADOR DE TRANSPORTE -->
+    <div class="card">
+        <h2>Uber Moto × Veículo Próprio</h2>
         <div class="flex-row">
-            <input type="text" id="compraItem" placeholder="Item (Ex: Arroz 5kg)">
-            <input type="number" id="compraValor" placeholder="Preço (Opcional)">
+            <div><label class="subtle">Uber Moto/mês</label><input type="number" id="simUber" value="600" oninput="calcularTransporte()"></div>
+            <div><label class="subtle">Parcela do veículo</label><input type="number" id="simParcela" placeholder="R$" oninput="calcularTransporte()"></div>
+        </div>
+        <div class="flex-row">
+            <div><label class="subtle">Combustível/energia</label><input type="number" id="simCombustivel" placeholder="R$" oninput="calcularTransporte()"></div>
+            <div><label class="subtle">Manutenção/seguro</label><input type="number" id="simManutencao" placeholder="R$" oninput="calcularTransporte()"></div>
+        </div>
+        <div id="resultadoTransporte" class="meta-card"></div>
+    </div>
+
+    <!-- LISTA DE SUPERMERCADO -->
+    <div class="card">
+        <h2>Lista de Supermercado</h2>
+        <p class="subtle">Informe a quantidade e o preço de uma unidade. O total de cada item e o total da compra são calculados automaticamente.</p>
+        <div class="flex-row">
+            <input type="text" id="compraItem" placeholder="Item (Ex: Arroz)">
+            <input type="number" id="compraQtd" min="0.01" step="0.01" value="1" placeholder="Quantidade" oninput="calcularSubtotalCompra()">
+            <select id="compraUnidade">
+                <option value="un.">Unidade</option><option value="kg">Quilo (kg)</option><option value="g">Grama (g)</option>
+                <option value="L">Litro (L)</option><option value="pacote">Pacote</option><option value="caixa">Caixa</option>
+            </select>
+        </div>
+        <div class="flex-row">
+            <input type="number" id="compraValorUnit" min="0" step="0.01" placeholder="Valor de cada unidade (R$)" oninput="calcularSubtotalCompra()">
+            <div class="meta-card" style="margin:5px 0 15px; display:flex; justify-content:space-between; align-items:center; min-height:49px;">
+                <span class="subtle">Total deste item</span><strong id="compraSubtotal" style="color:var(--success); font-size:18px;">R$ 0,00</strong>
+            </div>
         </div>
         <div class="flex-row" style="margin-top: 10px;">
             <button id="btn-salvar-compra" onclick="addCompra()">➕ Adicionar à Lista</button>
@@ -226,11 +341,11 @@
         
         <div class="table-responsive">
             <table id="tabelaCompras">
-                <thead><tr><th>OK</th><th>Item</th><th>Preço</th><th>Ações</th></tr></thead>
+                <thead><tr><th>OK</th><th>Item</th><th>Quantidade</th><th>Valor unitário</th><th>Total do item</th><th>Ações</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
-        <div class="total-box" id="totalCompras">Total Planejado: R$ 0,00</div>
+        <div class="total-box" id="totalCompras">Total do Supermercado: R$ 0,00</div>
     </div>
 
     <!-- BASES FINANCEIRAS -->
@@ -249,12 +364,12 @@
         <div style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
             <h3 style="color: var(--primary);">Base 2 (Redistribuição Dinâmica)</h3>
             <p style="font-size: 12px; color: #a1a1aa;">Desmarque um item e o valor será rateado entre os ativos.</p>
-            <div class="checkbox-group"><input type="checkbox" id="chkMim" checked onchange="calcularBases(true)"> <span style="flex:1;">Pra mim (Original 5%):</span> <strong id="b2Mim">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkDoar" checked onchange="calcularBases(true)"> <span style="flex:1;">Doar (Original 10%):</span> <strong id="b2Doar">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkContas" checked onchange="calcularBases(true)"> <span style="flex:1;">Contas (Original 60%):</span> <strong id="b2Contas">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkInvest" checked onchange="calcularBases(true)"> <span style="flex:1;">Investir (Original 10%):</span> <strong id="b2Invest">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkGuardar" checked onchange="calcularBases(true)"> <span style="flex:1;">Guardar (Original 10%):</span> <strong id="b2Guardar">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkLivre" checked onchange="calcularBases(true)"> <span style="flex:1;">Livre (Original 5%):</span> <strong id="b2Livre">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkMim" checked onchange="salvarERenderizar()"> <span style="flex:1;">Pra mim (Original 5%):</span> <strong id="b2Mim">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkDoar" checked onchange="salvarERenderizar()"> <span style="flex:1;">Doar (Original 10%):</span> <strong id="b2Doar">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkContas" checked onchange="salvarERenderizar()"> <span style="flex:1;">Contas (Original 60%):</span> <strong id="b2Contas">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkInvest" checked onchange="salvarERenderizar()"> <span style="flex:1;">Investir (Original 10%):</span> <strong id="b2Invest">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkGuardar" checked onchange="salvarERenderizar()"> <span style="flex:1;">Guardar (Original 10%):</span> <strong id="b2Guardar">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkLivre" checked onchange="salvarERenderizar()"> <span style="flex:1;">Livre (Original 5%):</span> <strong id="b2Livre">R$ 0,00</strong></div>
             <p class="total-box" style="border-top: 1px solid var(--border); margin-top: 15px;">Total Distribuído: <span id="b2TotalDist">R$ 0,00</span></p>
         </div>
     </div>
@@ -262,7 +377,7 @@
 </div>
 
 <script>
-    // 1. CONFIGURAÇÃO DO FIREBASE (Chaves do seu projeto gorillaz-burguer)
+    // 1. CONFIGURAÇÃO DO FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyA5oTLxYfcCpjC-4KUdl4P4S62f8uUWeqE",
         authDomain: "gorillaz-burguer.firebaseapp.com",
@@ -277,13 +392,15 @@
     // Inicializa Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const documentoGeral = db.collection('sistemaFinanceiro').doc('gabriel_dados');
+    // Atenção: Usei "vitoria_dados" para não misturar com o seu "gabriel_dados"
+    const documentoGeral = db.collection('sistemaFinanceiro').doc('vitoria_dados');
 
-    // ESTADOS (Bancos de dados locais temporários)
+    // ESTADOS
     let lancamentos = [];
     let dividas = [];
     let compras = [];
     let listaMetas = [];
+    let orcamentos = {};
     let configGerais = {
         chkMim: true, chkDoar: true, chkContas: true, 
         chkInvest: true, chkGuardar: true, chkLivre: true
@@ -292,10 +409,12 @@
     let editandoId = { lancamento: null, divida: null, compra: null, meta: null };
     let chartInstance = null;
 
-    // Utilitário
-    function formataMoeda(v) { return v.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}); }
-
-    // Ao carregar a página, buscar dados da nuvem
+    function formataMoeda(v) { return Number(v || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}); }
+    function escapar(v) { const d = document.createElement('div'); d.textContent = v == null ? '' : String(v); return d.innerHTML; }
+    function hojeISO() { return new Date().toISOString().slice(0, 10); }
+    function mesAtualISO() { return new Date().toISOString().slice(0, 7); }
+    
+    // --- LÓGICA DE CARREGAMENTO (NUVEM COM FALLBACK LOCAL) ---
     window.onload = () => {
         documentoGeral.get().then((doc) => {
             if (doc.exists) {
@@ -304,56 +423,95 @@
                 dividas = dados.dividas || [];
                 compras = dados.compras || [];
                 listaMetas = dados.listaMetas || [];
+                orcamentos = dados.orcamentos || {};
                 
-                if(dados.tituloApp) document.getElementById('tituloApp').innerText = dados.tituloApp;
+                if(dados.titulo) document.getElementById('tituloApp').innerText = dados.titulo;
                 if(dados.baseRenda) document.getElementById('baseRenda').value = dados.baseRenda;
+                if(dados.mesReferencia) document.getElementById('mesReferencia').value = dados.mesReferencia;
                 
+                if(dados.simTransporte) {
+                    localStorage.setItem('simTransporte', JSON.stringify(dados.simTransporte));
+                    ['simUber','simParcela','simCombustivel','simManutencao'].forEach(id => { 
+                        if(dados.simTransporte[id] != null) document.getElementById(id).value = dados.simTransporte[id]; 
+                    });
+                }
+
                 if(dados.configGerais) {
                     configGerais = dados.configGerais;
-                    document.getElementById('chkMim').checked = configGerais.chkMim;
-                    document.getElementById('chkDoar').checked = configGerais.chkDoar;
-                    document.getElementById('chkContas').checked = configGerais.chkContas;
-                    document.getElementById('chkInvest').checked = configGerais.chkInvest;
-                    document.getElementById('chkGuardar').checked = configGerais.chkGuardar;
-                    document.getElementById('chkLivre').checked = configGerais.chkLivre;
+                    document.getElementById('chkMim').checked = configGerais.chkMim ?? true;
+                    document.getElementById('chkDoar').checked = configGerais.chkDoar ?? true;
+                    document.getElementById('chkContas').checked = configGerais.chkContas ?? true;
+                    document.getElementById('chkInvest').checked = configGerais.chkInvest ?? true;
+                    document.getElementById('chkGuardar').checked = configGerais.chkGuardar ?? true;
+                    document.getElementById('chkLivre').checked = configGerais.chkLivre ?? true;
+                }
+                
+                localStorage.setItem('vitoria_backup', JSON.stringify(dados));
+            }
+            posLoad("Conectado ✅", "var(--success)");
+        }).catch((error) => {
+            console.error("Erro Firebase, puxando backup local:", error);
+            
+            let backup = JSON.parse(localStorage.getItem('vitoria_backup') || '{}');
+            if(backup.lancamentos) {
+                lancamentos = backup.lancamentos || [];
+                dividas = backup.dividas || [];
+                compras = backup.compras || [];
+                listaMetas = backup.listaMetas || [];
+                orcamentos = backup.orcamentos || {};
+                if(backup.titulo) document.getElementById('tituloApp').innerText = backup.titulo;
+                if(backup.baseRenda) document.getElementById('baseRenda').value = backup.baseRenda;
+                if(backup.mesReferencia) document.getElementById('mesReferencia').value = backup.mesReferencia;
+                
+                if(backup.configGerais) {
+                    configGerais = backup.configGerais;
+                    document.getElementById('chkMim').checked = configGerais.chkMim ?? true;
+                    document.getElementById('chkDoar').checked = configGerais.chkDoar ?? true;
+                    document.getElementById('chkContas').checked = configGerais.chkContas ?? true;
+                    document.getElementById('chkInvest').checked = configGerais.chkInvest ?? true;
+                    document.getElementById('chkGuardar').checked = configGerais.chkGuardar ?? true;
+                    document.getElementById('chkLivre').checked = configGerais.chkLivre ?? true;
                 }
             }
-            // Remove a tela de carregamento e renderiza
-            document.getElementById('loader').style.display = 'none';
-            renderTudo();
-        }).catch((error) => {
-            console.error("Erro ao buscar dados do Firebase:", error);
-            document.getElementById('loader').style.display = 'none';
-            alert("Erro ao conectar no banco de dados. Verifique a internet.");
+            posLoad("Modo Offline ⚠️", "var(--warning)");
         });
     };
 
-    // --- LÓGICA DE SALVAMENTO EM NUVEM (Substitui o LocalStorage) ---
-    function salvarNaNuvem() {
-        // Atualiza o HTML local instantaneamente (Interface Otimista)
-        renderTudo(); 
+    function posLoad(statusText, statusColor) {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('statusNuvem').innerText = statusText;
+        document.getElementById('statusNuvem').style.color = statusColor;
         
-        // Envia para o servidor silenciosamente
-        documentoGeral.set({
-            lancamentos: lancamentos,
-            dividas: dividas,
-            compras: compras,
-            listaMetas: listaMetas,
-            tituloApp: document.getElementById('tituloApp').innerText,
-            baseRenda: document.getElementById('baseRenda').value,
-            configGerais: configGerais
-        }).catch(err => {
-            console.error("Falha no backup:", err);
-            document.getElementById('statusNuvem').innerText = "Erro ao Salvar ❌";
-            document.getElementById('statusNuvem').style.color = "var(--danger)";
+        if (!document.getElementById('mesReferencia').value) {
+            document.getElementById('mesReferencia').value = mesAtualISO();
+        }
+        document.getElementById('lancData').value = hojeISO();
+        
+        // Carrega transporte local se não veio do banco
+        const simSalvo = JSON.parse(localStorage.getItem('simTransporte') || '{}');
+        ['simUber','simParcela','simCombustivel','simManutencao'].forEach(id => { 
+            if(simSalvo[id] != null && !document.getElementById(id).value) document.getElementById(id).value = simSalvo[id]; 
+        });
+
+        gerarRecorrentesDoMes();
+        salvarERenderizar();
+    }
+
+    function salvarTitulo() { salvarERenderizar(); }
+    function salvarRendaBase() { salvarERenderizar(); }
+    function salvarMesReferencia() { gerarRecorrentesDoMes(); salvarERenderizar(); }
+
+    function gerarRecorrentesDoMes() {
+        const mes = document.getElementById('mesReferencia').value || mesAtualISO();
+        const modelos = lancamentos.filter(i => i.recorrente && i.data);
+        modelos.forEach(modelo => {
+            const chave = `${modelo.recorrenciaId || modelo.id}-${mes}`;
+            if(lancamentos.some(i => i.chaveRecorrencia === chave) || modelo.data.startsWith(mes)) return;
+            const dia = Math.min(parseInt(modelo.data.slice(8,10)) || 1, new Date(Number(mes.slice(0,4)), Number(mes.slice(5,7)), 0).getDate());
+            lancamentos.push({...modelo, id: Date.now() + Math.random(), data: `${mes}-${String(dia).padStart(2,'0')}`, status: modelo.tipo === 'Saida' ? 'Pendente' : modelo.status, recorrenciaId: modelo.recorrenciaId || modelo.id, chaveRecorrencia: chave});
         });
     }
 
-    // Ações Rápidas de Config
-    function salvarTitulo() { salvarNaNuvem(); }
-    function salvarRendaBase() { salvarNaNuvem(); }
-
-    // --- FUNÇÕES DE LANÇAMENTOS ---
     function addLancamento() {
         const desc = document.getElementById('lancDesc').value;
         const valor = parseFloat(document.getElementById('lancValor').value) || 0;
@@ -361,11 +519,15 @@
         
         const item = {
             id: editandoId.lancamento || Date.now(),
-            desc: desc, tipo: document.getElementById('lancTipo').value,
-            cat: document.getElementById('lancCat').value, valor: valor,
+            desc: desc,
+            tipo: document.getElementById('lancTipo').value,
+            cat: document.getElementById('lancCat').value,
+            valor: valor,
             data: document.getElementById('lancData').value,
             metodo: document.getElementById('lancMetodo').value,
-            status: document.getElementById('lancStatus').value
+            status: document.getElementById('lancStatus').value,
+            recorrente: document.getElementById('lancRecorrente').checked,
+            recorrenciaId: editandoId.lancamento ? (lancamentos.find(i => i.id === editandoId.lancamento)?.recorrenciaId || editandoId.lancamento) : Date.now()
         };
 
         if(editandoId.lancamento) {
@@ -376,8 +538,9 @@
             lancamentos.push(item);
             document.getElementById('lancDesc').value = '';
             document.getElementById('lancValor').value = '';
+            document.getElementById('lancRecorrente').checked = false;
         }
-        salvarNaNuvem();
+        salvarERenderizar();
     }
 
     function editarLancamento(id) {
@@ -390,15 +553,16 @@
         document.getElementById('lancData').value = item.data;
         document.getElementById('lancMetodo').value = item.metodo;
         document.getElementById('lancStatus').value = item.status;
+        document.getElementById('lancRecorrente').checked = !!item.recorrente;
         
         editandoId.lancamento = id;
         let btn = document.getElementById('btn-salvar-lanc');
-        btn.innerText = "✓ Atualizar Lançamento"; btn.style.background = "var(--warning)";
+        btn.innerText = "✓ Atualizar Lançamento";
+        btn.style.background = "var(--warning)";
         document.getElementById('btn-cancel-lanc').style.display = "block";
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // --- DÍVIDAS ---
     function addDivida() {
         const nome = document.getElementById('divNome').value;
         const vAtual = parseFloat(document.getElementById('divValorAtual').value) || 0;
@@ -406,9 +570,13 @@
         
         const item = {
             id: editandoId.divida || Date.now(),
-            nome: nome, tipo: document.getElementById('divTipo').value,
+            nome: nome,
+            tipo: document.getElementById('divTipo').value,
             vOriginal: parseFloat(document.getElementById('divValorOriginal').value) || 0,
-            vAtual: vAtual
+            vAtual: vAtual,
+            parcelas: Math.max(1, parseInt(document.getElementById('divParcelas').value) || 1),
+            pagas: Math.max(0, parseInt(document.getElementById('divPagas').value) || 0),
+            vencimento: document.getElementById('divVencimento').value
         };
 
         if(editandoId.divida) {
@@ -420,8 +588,11 @@
             document.getElementById('divNome').value = '';
             document.getElementById('divValorOriginal').value = '';
             document.getElementById('divValorAtual').value = '';
+            document.getElementById('divParcelas').value = '';
+            document.getElementById('divPagas').value = '';
+            document.getElementById('divVencimento').value = '';
         }
-        salvarNaNuvem();
+        salvarERenderizar();
     }
 
     function editarDivida(id) {
@@ -431,22 +602,31 @@
         document.getElementById('divTipo').value = item.tipo;
         document.getElementById('divValorOriginal').value = item.vOriginal;
         document.getElementById('divValorAtual').value = item.vAtual;
+        document.getElementById('divParcelas').value = item.parcelas || 1;
+        document.getElementById('divPagas').value = item.pagas || 0;
+        document.getElementById('divVencimento').value = item.vencimento || '';
         
         editandoId.divida = id;
         let btn = document.getElementById('btn-salvar-div');
-        btn.innerText = "✓ Atualizar Dívida"; btn.style.background = "var(--warning)";
+        btn.innerText = "✓ Atualizar Dívida";
+        btn.style.background = "var(--warning)";
         document.getElementById('btn-cancel-div').style.display = "block";
     }
 
-    // --- COMPRAS ---
     function addCompra() {
         const nome = document.getElementById('compraItem').value;
-        const valor = parseFloat(document.getElementById('compraValor').value) || 0;
-        if(!nome) return alert("Preencha pelo menos o nome do item!");
+        const quantidade = parseFloat(document.getElementById('compraQtd').value) || 0;
+        const valorUnitario = parseFloat(document.getElementById('compraValorUnit').value) || 0;
+        if(!nome || quantidade <= 0 || valorUnitario <= 0) return alert("Preencha o item, a quantidade e o valor unitário!");
+        const valorTotal = quantidade * valorUnitario;
         
         const item = {
             id: editandoId.compra || Date.now(),
-            nome: nome, valor: valor,
+            nome: nome,
+            quantidade: quantidade,
+            unidade: document.getElementById('compraUnidade').value,
+            valorUnitario: valorUnitario,
+            valor: valorTotal,
             comprado: editandoId.compra ? compras.find(i => i.id === editandoId.compra).comprado : false
         };
 
@@ -457,37 +637,53 @@
         } else {
             compras.push(item);
             document.getElementById('compraItem').value = '';
-            document.getElementById('compraValor').value = '';
+            document.getElementById('compraQtd').value = '1';
+            document.getElementById('compraUnidade').value = 'un.';
+            document.getElementById('compraValorUnit').value = '';
+            calcularSubtotalCompra();
         }
-        salvarNaNuvem();
+        salvarERenderizar();
+    }
+
+    function calcularSubtotalCompra() {
+        const quantidade = parseFloat(document.getElementById('compraQtd').value) || 0;
+        const valorUnitario = parseFloat(document.getElementById('compraValorUnit').value) || 0;
+        document.getElementById('compraSubtotal').innerText = formataMoeda(quantidade * valorUnitario);
     }
 
     function editarCompra(id) {
         let item = compras.find(i => i.id === id);
         if(!item) return;
         document.getElementById('compraItem').value = item.nome;
-        document.getElementById('compraValor').value = item.valor > 0 ? item.valor : '';
+        document.getElementById('compraQtd').value = item.quantidade || 1;
+        document.getElementById('compraUnidade').value = item.unidade || 'un.';
+        document.getElementById('compraValorUnit').value = item.valorUnitario != null ? item.valorUnitario : (item.valor || '');
+        calcularSubtotalCompra();
         
         editandoId.compra = id;
         let btn = document.getElementById('btn-salvar-compra');
-        btn.innerText = "✓ Atualizar Compra"; btn.style.background = "var(--warning)";
+        btn.innerText = "✓ Atualizar Compra";
+        btn.style.background = "var(--warning)";
         document.getElementById('btn-cancel-compra').style.display = "block";
     }
 
     function toggleCompra(id) {
         let item = compras.find(i => i.id === id);
-        if(item) { item.comprado = !item.comprado; salvarNaNuvem(); }
+        if(item) {
+            item.comprado = !item.comprado;
+            salvarERenderizar();
+        }
     }
 
-    // --- METAS ---
     function addMeta() {
         const nome = document.getElementById('novaMetaNome').value;
         const valor = parseFloat(document.getElementById('novaMetaValor').value) || 0;
-        if(!nome || valor <= 0) return alert("Preencha nome e valor alvo!");
+        if(!nome || valor <= 0) return alert("Preencha nome e valor alvo da meta!");
 
         const item = {
             id: editandoId.meta || Date.now(),
-            nome: nome, valorAlvo: valor,
+            nome: nome,
+            valorAlvo: valor,
             depositado: editandoId.meta ? listaMetas.find(m => m.id === editandoId.meta).depositado : 0,
             retirado: editandoId.meta ? listaMetas.find(m => m.id === editandoId.meta).retirado : 0
         };
@@ -501,7 +697,7 @@
             document.getElementById('novaMetaNome').value = '';
             document.getElementById('novaMetaValor').value = '';
         }
-        salvarNaNuvem();
+        salvarERenderizar();
     }
 
     function transacaoMeta(id, tipo) {
@@ -511,7 +707,7 @@
         if(meta) {
             if(tipo === 'in') meta.depositado += valor;
             if(tipo === 'out') meta.retirado += valor;
-            salvarNaNuvem();
+            salvarERenderizar();
         }
     }
 
@@ -523,7 +719,7 @@
         
         if(novoDepositado !== null) meta.depositado = parseFloat(novoDepositado) || 0;
         if(novoRetirado !== null) meta.retirado = parseFloat(novoRetirado) || 0;
-        salvarNaNuvem();
+        salvarERenderizar();
     }
 
     function editarMetaBase(id) {
@@ -533,7 +729,8 @@
         document.getElementById('novaMetaValor').value = meta.valorAlvo;
         editandoId.meta = id;
         let btn = document.getElementById('btn-salvar-meta');
-        btn.innerText = "✓ Atualizar Meta"; btn.style.background = "var(--warning)";
+        btn.innerText = "✓ Atualizar Meta";
+        btn.style.background = "var(--warning)";
         document.getElementById('btn-cancel-meta').style.display = "block";
     }
 
@@ -542,34 +739,36 @@
         document.getElementById('novaMetaNome').value = '';
         document.getElementById('novaMetaValor').value = '';
         let btn = document.getElementById('btn-salvar-meta');
-        btn.innerText = "➕ Criar Meta"; btn.style.background = "var(--primary)";
+        btn.innerText = "➕ Criar Meta"; 
+        btn.style.background = "var(--primary)";
         document.getElementById('btn-cancel-meta').style.display = "none";
     }
 
     function deletarMeta(id) {
         if(confirm("Tem certeza que deseja excluir esta meta?")) {
             listaMetas = listaMetas.filter(m => m.id !== id);
-            salvarNaNuvem();
+            salvarERenderizar();
         }
     }
 
-    // --- AÇÕES GLOBAIS ---
     function cancelarEdicao(tipo) {
         editandoId[tipo] = null;
         if(tipo === 'lancamento') {
             document.getElementById('lancDesc').value = ''; document.getElementById('lancValor').value = '';
+            document.getElementById('lancRecorrente').checked = false;
             let btn = document.getElementById('btn-salvar-lanc');
             btn.innerText = "➕ Adicionar Lançamento"; btn.style.background = "var(--primary)";
             document.getElementById('btn-cancel-lanc').style.display = "none";
         }
         if(tipo === 'divida') {
             document.getElementById('divNome').value = ''; document.getElementById('divValorOriginal').value = ''; document.getElementById('divValorAtual').value = '';
+            document.getElementById('divParcelas').value = ''; document.getElementById('divPagas').value = ''; document.getElementById('divVencimento').value = '';
             let btn = document.getElementById('btn-salvar-div');
             btn.innerText = "➕ Adicionar Dívida"; btn.style.background = "var(--primary)";
             document.getElementById('btn-cancel-div').style.display = "none";
         }
         if(tipo === 'compra') {
-            document.getElementById('compraItem').value = ''; document.getElementById('compraValor').value = '';
+            document.getElementById('compraItem').value = ''; document.getElementById('compraQtd').value = '1'; document.getElementById('compraUnidade').value = 'un.'; document.getElementById('compraValorUnit').value = ''; calcularSubtotalCompra();
             let btn = document.getElementById('btn-salvar-compra');
             btn.innerText = "➕ Adicionar à Lista"; btn.style.background = "var(--primary)";
             document.getElementById('btn-cancel-compra').style.display = "none";
@@ -581,7 +780,7 @@
             if(tipo === 'lancamentos') lancamentos = lancamentos.filter(i => i.id !== id);
             if(tipo === 'dividas') dividas = dividas.filter(i => i.id !== id);
             if(tipo === 'compras') compras = compras.filter(i => i.id !== id);
-            salvarNaNuvem();
+            salvarERenderizar();
         }
     }
 
@@ -591,30 +790,68 @@
         if(item) {
             let clone = {...item, id: Date.now()}; 
             lista.push(clone);
-            salvarNaNuvem();
+            salvarERenderizar();
         }
     }
 
-    // --- RENDERIZADORES ---
-    function renderTudo() {
+    // --- SALVAR NA NUVEM E RENDERIZAR ---
+    function salvarERenderizar() {
+        // Renderiza tudo instantaneamente (Interface Otimista)
         renderLancamentos();
         renderDividas();
         renderCompras();
         renderMetas();
-        calcularBases(false);
+        renderOrcamentos();
+        renderVencimentos();
+        renderRelatorioMensal();
+        calcularTransporte();
+        calcularBases();
         atualizarDashboardEGrafico();
+
+        // Empacota tudo para a nuvem
+        let pacoteDados = {
+            lancamentos: lancamentos,
+            dividas: dividas,
+            compras: compras,
+            listaMetas: listaMetas,
+            orcamentos: orcamentos,
+            titulo: document.getElementById('tituloApp').innerText,
+            baseRenda: document.getElementById('baseRenda').value,
+            mesReferencia: document.getElementById('mesReferencia').value,
+            configGerais: configGerais,
+            simTransporte: JSON.parse(localStorage.getItem('simTransporte') || '{}')
+        };
+        
+        // Backup de Segurança no próprio aparelho
+        localStorage.setItem('vitoria_backup', JSON.stringify(pacoteDados));
+        
+        // Envia para o Firebase de forma silenciosa
+        documentoGeral.set(pacoteDados).then(() => {
+            document.getElementById('statusNuvem').innerText = "Conectado ✅";
+            document.getElementById('statusNuvem').style.color = "var(--success)";
+        }).catch(err => {
+            console.error("Falha no envio para nuvem:", err);
+            document.getElementById('statusNuvem').innerText = "Salvo Localmente ⚠️";
+            document.getElementById('statusNuvem').style.color = "var(--warning)";
+        });
     }
 
     function renderLancamentos() {
         const tbody = document.querySelector('#tabelaLancamentos tbody');
         tbody.innerHTML = '';
-        lancamentos.forEach(i => {
+        const busca = (document.getElementById('filtroTexto')?.value || '').toLowerCase();
+        const tipo = document.getElementById('filtroTipo')?.value || '';
+        const status = document.getElementById('filtroStatus')?.value || '';
+        const mes = document.getElementById('mesReferencia')?.value || mesAtualISO();
+        const filtrados = lancamentos.filter(i => (!i.data || i.data.startsWith(mes)) && (!busca || String(i.desc).toLowerCase().includes(busca)) && (!tipo || i.tipo === tipo) && (!status || i.status === status));
+        filtrados.sort((a,b) => String(b.data || '').localeCompare(String(a.data || ''))).forEach(i => {
             const corTipo = i.tipo === 'Entrada' ? 'color: var(--success)' : 'color: var(--danger)';
             let dataStr = i.data ? i.data.split('-').reverse().join('/') : 'Sem Data';
             tbody.innerHTML += `
                 <tr>
-                    <td>${dataStr}</td><td>${i.desc}</td><td>${i.cat}</td><td>${i.metodo}</td>
-                    <td>${i.status}</td><td style="${corTipo}; font-weight:bold;">${formataMoeda(i.valor)}</td>
+                    <td>${dataStr}</td>
+                    <td>${escapar(i.desc)} ${i.recorrente ? '<span title="Recorrente">🔁</span>' : ''}</td><td>${escapar(i.cat)}</td><td>${escapar(i.metodo)}</td>
+                    <td><span class="pill ${i.status === 'Pago' ? 'pill-success' : 'pill-warning'}">${escapar(i.status)}</span></td><td style="${corTipo}; font-weight:bold;">${formataMoeda(i.valor)}</td>
                     <td style="min-width: 140px;">
                         <button class="btn-small btn-edit" onclick="editarLancamento(${i.id})">✏️</button>
                         <button class="btn-small btn-clone" onclick="clonar('lancamentos', ${i.id})">📄</button>
@@ -623,24 +860,32 @@
                 </tr>
             `;
         });
+        if(!filtrados.length) tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Nenhum lançamento encontrado neste mês.</td></tr>';
     }
 
     function renderDividas() {
         const tbody = document.querySelector('#tabelaDividas tbody');
         tbody.innerHTML = '';
-        dividas.sort((a, b) => a.vAtual - b.vAtual);
+        dividas.sort((a, b) => saldoDivida(a) - saldoDivida(b));
         let total = 0;
 
         dividas.forEach(i => {
-            total += i.vAtual;
+            const parcelas = Math.max(1, Number(i.parcelas || 1));
+            const pagas = Math.min(parcelas, Math.max(0, Number(i.pagas || 0)));
+            const valorParcela = Number(i.vAtual || 0) / parcelas;
+            const saldo = saldoDivida(i);
+            total += saldo;
+            const venc = i.vencimento ? i.vencimento.split('-').reverse().join('/') : '—';
             tbody.innerHTML += `
                 <tr>
-                    <td>${i.nome}</td><td>${i.tipo}</td>
+                    <td>${escapar(i.nome)}</td><td>${escapar(i.tipo)}</td>
                     <td style="text-decoration: line-through; color: #a1a1aa;">${formataMoeda(i.vOriginal)}</td>
-                    <td style="color: var(--danger); font-weight:bold;">${formataMoeda(i.vAtual)}</td>
-                    <td style="min-width: 140px;">
+                    <td>${formataMoeda(valorParcela)}</td><td>${pagas}/${parcelas}</td>
+                    <td style="color: ${saldo > 0 ? 'var(--danger)' : 'var(--success)'}; font-weight:bold;">${formataMoeda(saldo)}</td>
+                    <td>${venc}</td>
+                    <td style="min-width: 190px;">
+                        ${saldo > 0 ? `<button class="btn-small" style="background:var(--success); color:white;" onclick="pagarParcela(${i.id})" title="Registrar uma parcela paga">✓ Parcela</button>` : '<span class="pill pill-success">Quitada</span>'}
                         <button class="btn-small btn-edit" onclick="editarDivida(${i.id})">✏️</button>
-                        <button class="btn-small btn-clone" onclick="clonar('dividas', ${i.id})">📄</button>
                         <button class="btn-small btn-del" onclick="deletar('dividas', ${i.id})">X</button>
                     </td>
                 </tr>
@@ -649,20 +894,45 @@
         document.getElementById('lblTotalDividas').innerText = `Total: ${formataMoeda(total)}`;
     }
 
+    function saldoDivida(i) {
+        const parcelas = Math.max(1, Number(i.parcelas || 1));
+        const pagas = Math.min(parcelas, Math.max(0, Number(i.pagas || 0)));
+        return Math.max(0, Number(i.vAtual || 0) - (Number(i.vAtual || 0) / parcelas) * pagas);
+    }
+
+    function pagarParcela(id) {
+        const item = dividas.find(i => i.id === id);
+        if(!item) return;
+        item.parcelas = Math.max(1, Number(item.parcelas || 1));
+        item.pagas = Math.min(item.parcelas, Number(item.pagas || 0) + 1);
+        if(item.vencimento && item.pagas < item.parcelas) {
+            const d = new Date(item.vencimento + 'T12:00:00'); d.setMonth(d.getMonth() + 1); item.vencimento = d.toISOString().slice(0,10);
+        }
+        salvarERenderizar();
+    }
+
     function renderCompras() {
         const tbody = document.querySelector('#tabelaCompras tbody');
         tbody.innerHTML = '';
         let total = 0;
+        let totalComprado = 0;
         compras.forEach(i => {
-            total += i.valor;
-            let displayValor = i.valor > 0 ? formataMoeda(i.valor) : '<span style="color:#a1a1aa;">À definir</span>';
+            const quantidade = Number(i.quantidade || 1);
+            const valorUnitario = i.valorUnitario != null ? Number(i.valorUnitario) : Number(i.valor || 0);
+            const valorTotal = quantidade * valorUnitario;
+            total += valorTotal;
+            if(i.comprado) totalComprado += valorTotal;
+            let displayUnitario = valorUnitario > 0 ? formataMoeda(valorUnitario) : '<span style="color:#a1a1aa;">À definir</span>';
+            let displayTotal = valorTotal > 0 ? formataMoeda(valorTotal) : '<span style="color:#a1a1aa;">À definir</span>';
             let estiloNome = i.comprado ? 'text-decoration: line-through; color: #a1a1aa;' : '';
             
             tbody.innerHTML += `
                 <tr style="${i.comprado ? 'opacity: 0.6;' : ''}">
                     <td><input type="checkbox" onchange="toggleCompra(${i.id})" ${i.comprado ? 'checked' : ''}></td>
-                    <td style="${estiloNome}">${i.nome}</td>
-                    <td style="${estiloNome}">${displayValor}</td>
+                    <td style="${estiloNome}">${escapar(i.nome)}</td>
+                    <td style="${estiloNome}">${quantidade.toLocaleString('pt-BR')} ${escapar(i.unidade || 'un.')}</td>
+                    <td style="${estiloNome}">${displayUnitario}</td>
+                    <td style="${estiloNome};font-weight:bold;color:${i.comprado ? '#a1a1aa' : 'var(--success)'}">${displayTotal}</td>
                     <td style="min-width: 140px;">
                         <button class="btn-small btn-edit" onclick="editarCompra(${i.id})">✏️</button>
                         <button class="btn-small btn-clone" onclick="clonar('compras', ${i.id})">📄</button>
@@ -671,7 +941,8 @@
                 </tr>
             `;
         });
-        document.getElementById('totalCompras').innerText = `Total Planejado: ${formataMoeda(total)}`;
+        if(!compras.length) tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nenhum item cadastrado.</td></tr>';
+        document.getElementById('totalCompras').innerHTML = `Total do Supermercado: ${formataMoeda(total)}<div class="subtle" style="margin-top:6px;">Marcados: ${formataMoeda(totalComprado)} • Restante: ${formataMoeda(total - totalComprado)}</div>`;
     }
 
     function renderMetas() {
@@ -716,13 +987,130 @@
         document.getElementById('lblTotalMetas').innerText = `Total Guardado: ${formataMoeda(saldoTotalGeral)}`;
     }
 
-    function calcularBases(foiClicado = false) {
+    function salvarOrcamento() {
+        const cat = document.getElementById('orcCategoria').value;
+        const limite = parseFloat(document.getElementById('orcLimite').value) || 0;
+        if(limite <= 0) return alert('Informe um limite maior que zero.');
+        orcamentos[cat] = limite;
+        document.getElementById('orcLimite').value = '';
+        salvarERenderizar();
+    }
+
+    function excluirOrcamento(cat) {
+        delete orcamentos[cat];
+        salvarERenderizar();
+    }
+
+    function renderOrcamentos() {
+        const box = document.getElementById('listaOrcamentos');
+        const mes = document.getElementById('mesReferencia').value || mesAtualISO();
+        const nomes = {Alimentacao:'Alimentação', Moradia:'Moradia', Transporte:'Transporte', Saude:'Saúde', Educacao:'Educação', Lazer:'Lazer', Dividas:'Dívidas', Outros:'Outros'};
+        let html = '', totalLimite = 0, totalGasto = 0;
+        Object.entries(orcamentos).forEach(([cat, limite]) => {
+            const gasto = lancamentos.filter(i => i.tipo === 'Saida' && i.status === 'Pago' && i.cat === cat && (!i.data || i.data.startsWith(mes))).reduce((a,i) => a + Number(i.valor || 0), 0);
+            const pct = limite > 0 ? Math.min(100, gasto / limite * 100) : 0;
+            const passou = gasto > limite;
+            totalLimite += Number(limite); totalGasto += gasto;
+            html += `<div class="budget-row"><div class="budget-head"><strong>${nomes[cat] || escapar(cat)}</strong><span style="color:${passou ? 'var(--danger)' : 'var(--success)'}">${formataMoeda(gasto)} de ${formataMoeda(limite)}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${passou ? 'var(--danger)' : pct >= 80 ? 'var(--warning)' : 'var(--primary)'}">${pct.toFixed(0)}%</div></div><div style="text-align:right;margin-top:6px"><button class="btn-small btn-del" onclick="excluirOrcamento('${cat}')">Excluir limite</button></div></div>`;
+        });
+        box.innerHTML = html || '<div class="empty-state">Cadastre o primeiro limite mensal acima.</div>';
+        document.getElementById('lblOrcamentoStatus').innerText = Object.keys(orcamentos).length ? `${formataMoeda(totalGasto)} gastos de ${formataMoeda(totalLimite)}` : '';
+    }
+
+    function renderVencimentos() {
+        const box = document.getElementById('listaVencimentos');
+        const mes = document.getElementById('mesReferencia').value || mesAtualISO();
+        const itens = lancamentos.filter(i => i.tipo === 'Saida' && i.status === 'Pendente' && i.data && i.data.startsWith(mes)).sort((a,b) => a.data.localeCompare(b.data));
+        const hoje = hojeISO();
+        box.innerHTML = itens.map(i => {
+            const atrasada = i.data < hoje;
+            return `<div class="budget-row" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div style="flex:1;min-width:180px"><strong>${escapar(i.desc)}</strong><div class="subtle">${i.data.split('-').reverse().join('/')} • ${escapar(i.cat)}</div></div><strong style="color:var(--danger)">${formataMoeda(i.valor)}</strong>${atrasada ? '<span class="pill pill-danger">Atrasada</span>' : '<span class="pill pill-warning">Pendente</span>'}<button class="btn-small" style="background:var(--success)" onclick="marcarPago('+i.id+')">✓ Pagar</button></div>`;
+        }).join('') || '<div class="empty-state">Nenhuma conta pendente com vencimento neste mês.</div>';
+        document.getElementById('lblVencimentos').innerText = `${itens.length} conta(s)`;
+    }
+
+    function marcarPago(id) {
+        const item = lancamentos.find(i => i.id === id);
+        if(item) { item.status = 'Pago'; salvarERenderizar(); }
+    }
+
+    function renderRelatorioMensal() {
+        const mes = document.getElementById('mesReferencia').value || mesAtualISO();
+        const itens = lancamentos.filter(i => !i.data || i.data.startsWith(mes));
+        const entradas = itens.filter(i => i.tipo === 'Entrada' && i.status === 'Pago').reduce((a,i) => a + Number(i.valor || 0), 0);
+        const saidas = itens.filter(i => i.tipo === 'Saida' && i.status === 'Pago').reduce((a,i) => a + Number(i.valor || 0), 0);
+        const pendentes = itens.filter(i => i.tipo === 'Saida' && i.status === 'Pendente').reduce((a,i) => a + Number(i.valor || 0), 0);
+        const gastosCat = {};
+        itens.filter(i => i.tipo === 'Saida' && i.status === 'Pago').forEach(i => gastosCat[i.cat] = (gastosCat[i.cat] || 0) + Number(i.valor || 0));
+        const maior = Object.entries(gastosCat).sort((a,b) => b[1]-a[1])[0];
+        const economia = entradas - saidas;
+        document.getElementById('relatorioMensal').innerHTML = `<p>Entrou: <strong style="color:var(--success)">${formataMoeda(entradas)}</strong></p><p>Saiu: <strong style="color:var(--danger)">${formataMoeda(saidas)}</strong></p><p>Ainda pendente: <strong style="color:var(--warning)">${formataMoeda(pendentes)}</strong></p><p>Resultado atual: <strong style="color:${economia >= 0 ? 'var(--success)' : 'var(--danger)'}">${formataMoeda(economia)}</strong></p><p>Maior categoria de gasto: <strong>${maior ? escapar(maior[0]) + ' (' + formataMoeda(maior[1]) + ')' : 'Sem gastos pagos'}</strong></p>`;
+    }
+
+    function calcularTransporte() {
+        const ids = ['simUber','simParcela','simCombustivel','simManutencao'];
+        const v = {}; ids.forEach(id => v[id] = parseFloat(document.getElementById(id)?.value) || 0);
+        localStorage.setItem('simTransporte', JSON.stringify(v));
+        const proprio = v.simParcela + v.simCombustivel + v.simManutencao;
+        const diferenca = v.simUber - proprio;
+        document.getElementById('resultadoTransporte').innerHTML = `<p>Veículo próprio por mês: <strong>${formataMoeda(proprio)}</strong></p><p style="color:${diferenca >= 0 ? 'var(--success)' : 'var(--warning)'}">${diferenca >= 0 ? `Economia estimada: <strong>${formataMoeda(diferenca)}/mês</strong>` : `Custo adicional estimado: <strong>${formataMoeda(Math.abs(diferenca))}/mês</strong>`}</p><p class="subtle">Compare também entrada, documentação e imprevistos antes de decidir.</p>`;
+    }
+
+    function dadosDoSistema() {
+        return {versao:2, exportadoEm:new Date().toISOString(), lancamentos, dividas, compras, listaMetas, orcamentos, titulo:document.getElementById('tituloApp').innerText, baseRenda:document.getElementById('baseRenda').value, mesReferencia:document.getElementById('mesReferencia').value, configGerais, simTransporte:JSON.parse(localStorage.getItem('simTransporte') || '{}')};
+    }
+
+    function baixarArquivo(conteudo, nome, tipo) {
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([conteudo], {type:tipo})); a.download = nome; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+
+    function exportarBackup() { baixarArquivo(JSON.stringify(dadosDoSistema(), null, 2), `financeiro-backup-${hojeISO()}.json`, 'application/json'); }
+
+    function importarBackup(event) {
+        const file = event.target.files[0]; if(!file) return;
+        const reader = new FileReader(); reader.onload = e => {
+            try {
+                const d = JSON.parse(e.target.result);
+                if(!confirm('Restaurar este backup? Os dados atuais serão substituídos.')) return;
+                lancamentos = Array.isArray(d.lancamentos) ? d.lancamentos : [];
+                dividas = Array.isArray(d.dividas) ? d.dividas : [];
+                compras = Array.isArray(d.compras) ? d.compras : [];
+                listaMetas = Array.isArray(d.listaMetas) ? d.listaMetas : [];
+                orcamentos = d.orcamentos && typeof d.orcamentos === 'object' ? d.orcamentos : {};
+                if(d.titulo) document.getElementById('tituloApp').innerText = d.titulo;
+                if(d.baseRenda != null) document.getElementById('baseRenda').value = d.baseRenda;
+                if(d.simTransporte) { localStorage.setItem('simTransporte', JSON.stringify(d.simTransporte)); Object.entries(d.simTransporte).forEach(([id,val]) => { if(document.getElementById(id)) document.getElementById(id).value = val; }); }
+                if(d.configGerais) {
+                    configGerais = d.configGerais;
+                    document.getElementById('chkMim').checked = configGerais.chkMim ?? true;
+                    document.getElementById('chkDoar').checked = configGerais.chkDoar ?? true;
+                    document.getElementById('chkContas').checked = configGerais.chkContas ?? true;
+                    document.getElementById('chkInvest').checked = configGerais.chkInvest ?? true;
+                    document.getElementById('chkGuardar').checked = configGerais.chkGuardar ?? true;
+                    document.getElementById('chkLivre').checked = configGerais.chkLivre ?? true;
+                }
+                salvarERenderizar(); alert('Backup restaurado com sucesso! E já está salvo na nuvem.');
+            } catch(err) { alert('Arquivo de backup inválido.'); }
+        }; reader.readAsText(file); event.target.value = '';
+    }
+
+    function exportarCSV() {
+        const linhas = [['Data','Descrição','Tipo','Categoria','Método','Status','Valor']];
+        lancamentos.forEach(i => linhas.push([i.data || '', i.desc, i.tipo, i.cat, i.metodo, i.status, Number(i.valor || 0).toFixed(2)]));
+        const csv = '\ufeff' + linhas.map(l => l.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(';')).join('\n');
+         baixarArquivo(csv, `lancamentos-${hojeISO()}.csv`, 'text/csv;charset=utf-8');
+    }
+
+    // --- CÁLCULO DAS BASES ---
+    function calcularBases() {
         const renda = parseFloat(document.getElementById('baseRenda').value) || 0;
         
+        // Base 1 (Fixa)
         document.getElementById('b1Contas').innerText = formataMoeda(renda * 0.50);
         document.getElementById('b1Invest').innerText = formataMoeda(renda * 0.30);
         document.getElementById('b1Mim').innerText = formataMoeda(renda * 0.20);
 
+        // Base 2 (Dinâmica)
         const categorias = [
             { idElem: 'b2Mim', idChk: 'chkMim', pctOrig: 0.05 },
             { idElem: 'b2Doar', idChk: 'chkDoar', pctOrig: 0.10 },
@@ -734,10 +1122,11 @@
 
         let pctAtivaTotal = 0;
         categorias.forEach(cat => {
-            if (document.getElementById(cat.idChk).checked) {
+            const isChecked = document.getElementById(cat.idChk).checked;
+            if (isChecked) {
                 pctAtivaTotal += cat.pctOrig;
             }
-            configGerais[cat.idChk] = document.getElementById(cat.idChk).checked;
+            configGerais[cat.idChk] = isChecked;
         });
 
         let totalB2 = 0;
@@ -752,14 +1141,15 @@
         });
         
         document.getElementById('b2TotalDist').innerText = formataMoeda(totalB2);
-        
-        if(foiClicado) salvarNaNuvem();
     }
 
     function atualizarDashboardEGrafico() {
-        const totalEntradas = lancamentos.filter(i => i.tipo === 'Entrada').reduce((acc, i) => acc + i.valor, 0);
-        const totalSaidas = lancamentos.filter(i => i.tipo === 'Saida').reduce((acc, i) => acc + i.valor, 0);
-        const totalDividas = dividas.reduce((acc, i) => acc + i.vAtual, 0);
+        const mes = document.getElementById('mesReferencia').value || mesAtualISO();
+        const itensMes = lancamentos.filter(i => !i.data || i.data.startsWith(mes));
+        const totalEntradas = itensMes.filter(i => i.tipo === 'Entrada' && i.status === 'Pago').reduce((acc, i) => acc + Number(i.valor || 0), 0);
+        const totalSaidas = itensMes.filter(i => i.tipo === 'Saida' && i.status === 'Pago').reduce((acc, i) => acc + Number(i.valor || 0), 0);
+        const totalPendentes = itensMes.filter(i => i.tipo === 'Saida' && i.status === 'Pendente').reduce((acc, i) => acc + Number(i.valor || 0), 0);
+        const totalDividas = dividas.reduce((acc, i) => acc + saldoDivida(i), 0);
         
         let saldoGuardado = 0;
         listaMetas.forEach(m => {
@@ -773,24 +1163,30 @@
         document.getElementById('dash-saldo').style.color = saldoMensal >= 0 ? 'var(--success)' : 'var(--danger)';
         document.getElementById('dash-dividas').innerText = formataMoeda(totalDividas);
         document.getElementById('dash-guardado').innerText = formataMoeda(saldoGuardado);
+        document.getElementById('dash-pendente').innerText = formataMoeda(totalPendentes);
+        const saldoPrevisto = saldoMensal - totalPendentes;
+        document.getElementById('dash-previsto').innerText = formataMoeda(saldoPrevisto);
+        document.getElementById('dash-previsto').style.color = saldoPrevisto >= 0 ? 'var(--info)' : 'var(--danger)';
 
+        if(typeof Chart === 'undefined') return;
         const ctx = document.getElementById('financeChart').getContext('2d');
         if(chartInstance) chartInstance.destroy();
         
         chartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Entradas', 'Saídas', 'Total Dívidas', 'Metas Guardadas'],
+                labels: ['Entradas', 'Saídas Pagas', 'Pendentes', 'Total Dívidas', 'Metas Guardadas'],
                 datasets: [{
                     label: 'Resumo (R$)',
-                    data: [totalEntradas, totalSaidas, totalDividas, saldoGuardado],
-                    backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#a855f7'],
+                    data: [totalEntradas, totalSaidas, totalPendentes, totalDividas, saldoGuardado],
+                    backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#fb7185', '#a855f7'],
                     borderWidth: 0,
                     borderRadius: 4
                 }]
             },
             options: { 
-                responsive: true, maintainAspectRatio: false,
+                responsive: true, 
+                maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
                     y: { ticks: { color: '#a1a1aa' }, grid: { color: '#27272a' } },
