@@ -91,6 +91,8 @@
         .empty-state { text-align:center; padding:18px; color:#71717a; }
         .danger-outline { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
         .info-outline { background: transparent; border: 1px solid var(--info); color: #93c5fd; }
+        .inline-price { width: 125px; min-width: 105px; margin: 0; padding: 9px 10px; border-color: #52525b; background: #09090b; }
+        .inline-price:focus { outline: 2px solid var(--primary); border-color: var(--primary); }
         @media (max-width: 599px) {
             body { padding: 8px; }
             .card { padding: 14px; }
@@ -178,7 +180,7 @@
         <h2>Metas e Diversificação <span id="lblTotalMetas" style="color: var(--primary); font-size: 16px;">Total Guardado: R$ 0,00</span></h2>
         
         <div class="flex-row" style="background: #18181b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            <div><label style="font-size: 13px; color: #a1a1aa;">Nome da Meta</label><input type="text" id="novaMetaNome" placeholder="Ex: Reserva Viagem"></div>
+            <div><label style="font-size: 13px; color: #a1a1aa;">Nome da Meta</label><input type="text" id="novaMetaNome" placeholder="Ex: Reserva Decants"></div>
             <div><label style="font-size: 13px; color: #a1a1aa;">Valor Alvo (R$)</label><input type="number" id="novaMetaValor" placeholder="Ex: 5000"></div>
             <div style="display:flex; align-items:flex-end;">
                 <button id="btn-salvar-meta" onclick="addMeta()" style="margin:0;">➕ Criar Meta</button>
@@ -319,7 +321,7 @@
     <!-- LISTA DE SUPERMERCADO -->
     <div class="card">
         <h2>Lista de Supermercado</h2>
-        <p class="subtle">Informe a quantidade e o preço de uma unidade. O total de cada item e o total da compra são calculados automaticamente.</p>
+        <p class="subtle">O valor é opcional. Você pode adicionar primeiro os itens e preencher ou alterar os preços diretamente na lista; os totais são atualizados automaticamente e sincronizados em tempo real.</p>
         <div class="flex-row">
             <input type="text" id="compraItem" placeholder="Item (Ex: Arroz)">
             <input type="number" id="compraQtd" min="0.01" step="0.01" value="1" placeholder="Quantidade" oninput="calcularSubtotalCompra()">
@@ -392,7 +394,7 @@
     // Inicializa Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    // Atenção: Usei "vitoria_dados" para não misturar com o seu "gabriel_dados"
+    // Salva na gaveta exclusiva da Vitória
     const documentoGeral = db.collection('sistemaFinanceiro').doc('vitoria_dados');
 
     // ESTADOS
@@ -451,7 +453,6 @@
             posLoad("Conectado ✅", "var(--success)");
         }).catch((error) => {
             console.error("Erro Firebase, puxando backup local:", error);
-            
             let backup = JSON.parse(localStorage.getItem('vitoria_backup') || '{}');
             if(backup.lancamentos) {
                 lancamentos = backup.lancamentos || [];
@@ -487,7 +488,6 @@
         }
         document.getElementById('lancData').value = hojeISO();
         
-        // Carrega transporte local se não veio do banco
         const simSalvo = JSON.parse(localStorage.getItem('simTransporte') || '{}');
         ['simUber','simParcela','simCombustivel','simManutencao'].forEach(id => { 
             if(simSalvo[id] != null && !document.getElementById(id).value) document.getElementById(id).value = simSalvo[id]; 
@@ -616,9 +616,11 @@
     function addCompra() {
         const nome = document.getElementById('compraItem').value;
         const quantidade = parseFloat(document.getElementById('compraQtd').value) || 0;
-        const valorUnitario = parseFloat(document.getElementById('compraValorUnit').value) || 0;
-        if(!nome || quantidade <= 0 || valorUnitario <= 0) return alert("Preencha o item, a quantidade e o valor unitário!");
-        const valorTotal = quantidade * valorUnitario;
+        const valorDigitado = document.getElementById('compraValorUnit').value.trim();
+        const valorUnitario = valorDigitado === '' ? null : parseFloat(valorDigitado);
+        if(!nome || quantidade <= 0) return alert("Preencha o nome do item e uma quantidade válida!");
+        if(valorUnitario !== null && (!Number.isFinite(valorUnitario) || valorUnitario < 0)) return alert("Digite um valor unitário válido ou deixe o campo vazio.");
+        const valorTotal = quantidade * (valorUnitario || 0);
         
         const item = {
             id: editandoId.compra || Date.now(),
@@ -649,6 +651,42 @@
         const quantidade = parseFloat(document.getElementById('compraQtd').value) || 0;
         const valorUnitario = parseFloat(document.getElementById('compraValorUnit').value) || 0;
         document.getElementById('compraSubtotal').innerText = formataMoeda(quantidade * valorUnitario);
+    }
+
+    // NOVA LÓGICA DE ATUALIZAÇÃO DA COMPRA (Silenciosa no Firebase para não perder foco)
+    function atualizarValorCompra(id, campo) {
+        const item = compras.find(i => i.id === id);
+        if(!item) return;
+
+        const texto = campo.value.trim();
+        const novoValor = texto === '' ? null : parseFloat(texto);
+        if(novoValor !== null && (!Number.isFinite(novoValor) || novoValor < 0)) return;
+
+        item.valorUnitario = novoValor;
+        item.valor = Number(item.quantidade || 1) * (novoValor || 0);
+        
+        // Em vez de recarregar tudo com o salvarERenderizar(), enviamos pro Google sem piscar a tela
+        salvarNuvemSilencioso();
+
+        const totalLinha = document.getElementById(`total-item-${id}`);
+        if(totalLinha) totalLinha.innerHTML = novoValor === null
+            ? '<span style="color:#a1a1aa;">À definir</span>'
+            : formataMoeda(item.valor);
+            
+        atualizarResumoCompras();
+    }
+
+    function atualizarResumoCompras() {
+        let total = 0;
+        let totalComprado = 0;
+        compras.forEach(i => {
+            const quantidade = Number(i.quantidade || 1);
+            const valorUnitario = i.valorUnitario != null ? Number(i.valorUnitario) : Number(i.valor || 0);
+            const valorTotal = quantidade * valorUnitario;
+            total += valorTotal;
+            if(i.comprado) totalComprado += valorTotal;
+        });
+        document.getElementById('totalCompras').innerHTML = `Total do Supermercado: ${formataMoeda(total)}<div class="subtle" style="margin-top:6px;">Marcados: ${formataMoeda(totalComprado)} • Restante: ${formataMoeda(total - totalComprado)}</div>`;
     }
 
     function editarCompra(id) {
@@ -796,7 +834,6 @@
 
     // --- SALVAR NA NUVEM E RENDERIZAR ---
     function salvarERenderizar() {
-        // Renderiza tudo instantaneamente (Interface Otimista)
         renderLancamentos();
         renderDividas();
         renderCompras();
@@ -808,7 +845,10 @@
         calcularBases();
         atualizarDashboardEGrafico();
 
-        // Empacota tudo para a nuvem
+        salvarNuvemSilencioso();
+    }
+
+    function salvarNuvemSilencioso() {
         let pacoteDados = {
             lancamentos: lancamentos,
             dividas: dividas,
@@ -822,17 +862,17 @@
             simTransporte: JSON.parse(localStorage.getItem('simTransporte') || '{}')
         };
         
-        // Backup de Segurança no próprio aparelho
+        // Backup Local Imediato
         localStorage.setItem('vitoria_backup', JSON.stringify(pacoteDados));
         
-        // Envia para o Firebase de forma silenciosa
+        // Envia para o Firebase
         documentoGeral.set(pacoteDados).then(() => {
-            document.getElementById('statusNuvem').innerText = "Conectado ✅";
-            document.getElementById('statusNuvem').style.color = "var(--success)";
+            let el = document.getElementById('statusNuvem');
+            if(el) { el.innerText = "Conectado ✅"; el.style.color = "var(--success)"; }
         }).catch(err => {
             console.error("Falha no envio para nuvem:", err);
-            document.getElementById('statusNuvem').innerText = "Salvo Localmente ⚠️";
-            document.getElementById('statusNuvem').style.color = "var(--warning)";
+            let el = document.getElementById('statusNuvem');
+            if(el) { el.innerText = "Salvo Localmente ⚠️"; el.style.color = "var(--warning)"; }
         });
     }
 
@@ -884,7 +924,7 @@
                     <td style="color: ${saldo > 0 ? 'var(--danger)' : 'var(--success)'}; font-weight:bold;">${formataMoeda(saldo)}</td>
                     <td>${venc}</td>
                     <td style="min-width: 190px;">
-                        ${saldo > 0 ? `<button class="btn-small" style="background:var(--success); color:white;" onclick="pagarParcela(${i.id})" title="Registrar uma parcela paga">✓ Parcela</button>` : '<span class="pill pill-success">Quitada</span>'}
+                        ${saldo > 0 ? `<button class="btn-small" style="background:var(--success); color: white;" onclick="pagarParcela(${i.id})" title="Registrar uma parcela paga">✓ Parcela</button>` : '<span class="pill pill-success">Quitada</span>'}
                         <button class="btn-small btn-edit" onclick="editarDivida(${i.id})">✏️</button>
                         <button class="btn-small btn-del" onclick="deletar('dividas', ${i.id})">X</button>
                     </td>
@@ -916,14 +956,16 @@
         tbody.innerHTML = '';
         let total = 0;
         let totalComprado = 0;
+        
         compras.forEach(i => {
             const quantidade = Number(i.quantidade || 1);
             const valorUnitario = i.valorUnitario != null ? Number(i.valorUnitario) : Number(i.valor || 0);
             const valorTotal = quantidade * valorUnitario;
+            const temValorDefinido = i.valorUnitario != null || Number(i.valor || 0) > 0;
             total += valorTotal;
             if(i.comprado) totalComprado += valorTotal;
-            let displayUnitario = valorUnitario > 0 ? formataMoeda(valorUnitario) : '<span style="color:#a1a1aa;">À definir</span>';
-            let displayTotal = valorTotal > 0 ? formataMoeda(valorTotal) : '<span style="color:#a1a1aa;">À definir</span>';
+            
+            let displayTotal = temValorDefinido ? formataMoeda(valorTotal) : '<span style="color:#a1a1aa;">À definir</span>';
             let estiloNome = i.comprado ? 'text-decoration: line-through; color: #a1a1aa;' : '';
             
             tbody.innerHTML += `
@@ -931,18 +973,18 @@
                     <td><input type="checkbox" onchange="toggleCompra(${i.id})" ${i.comprado ? 'checked' : ''}></td>
                     <td style="${estiloNome}">${escapar(i.nome)}</td>
                     <td style="${estiloNome}">${quantidade.toLocaleString('pt-BR')} ${escapar(i.unidade || 'un.')}</td>
-                    <td style="${estiloNome}">${displayUnitario}</td>
-                    <td style="${estiloNome};font-weight:bold;color:${i.comprado ? '#a1a1aa' : 'var(--success)'}">${displayTotal}</td>
-                    <td style="min-width: 140px;">
-                        <button class="btn-small btn-edit" onclick="editarCompra(${i.id})">✏️</button>
+                    <td><input class="inline-price" type="number" min="0" step="0.01" value="${temValorDefinido ? valorUnitario : ''}" placeholder="Opcional" aria-label="Valor unitário de ${escapar(i.nome)}" oninput="atualizarValorCompra(${i.id}, this)"></td>
+                    <td id="total-item-${i.id}" style="${estiloNome};font-weight:bold;color:${i.comprado ? '#a1a1aa' : 'var(--success)'}">${displayTotal}</td>
+                    <td style="min-width: 105px;">
                         <button class="btn-small btn-clone" onclick="clonar('compras', ${i.id})">📄</button>
                         <button class="btn-small btn-del" onclick="deletar('compras', ${i.id})">X</button>
                     </td>
                 </tr>
             `;
         });
+        
         if(!compras.length) tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nenhum item cadastrado.</td></tr>';
-        document.getElementById('totalCompras').innerHTML = `Total do Supermercado: ${formataMoeda(total)}<div class="subtle" style="margin-top:6px;">Marcados: ${formataMoeda(totalComprado)} • Restante: ${formataMoeda(total - totalComprado)}</div>`;
+        atualizarResumoCompras();
     }
 
     function renderMetas() {
@@ -1079,7 +1121,13 @@
                 orcamentos = d.orcamentos && typeof d.orcamentos === 'object' ? d.orcamentos : {};
                 if(d.titulo) document.getElementById('tituloApp').innerText = d.titulo;
                 if(d.baseRenda != null) document.getElementById('baseRenda').value = d.baseRenda;
-                if(d.simTransporte) { localStorage.setItem('simTransporte', JSON.stringify(d.simTransporte)); Object.entries(d.simTransporte).forEach(([id,val]) => { if(document.getElementById(id)) document.getElementById(id).value = val; }); }
+                if(d.mesReferencia) document.getElementById('mesReferencia').value = d.mesReferencia;
+                
+                if(d.simTransporte) { 
+                    localStorage.setItem('simTransporte', JSON.stringify(d.simTransporte)); 
+                    Object.entries(d.simTransporte).forEach(([id,val]) => { if(document.getElementById(id)) document.getElementById(id).value = val; }); 
+                }
+                
                 if(d.configGerais) {
                     configGerais = d.configGerais;
                     document.getElementById('chkMim').checked = configGerais.chkMim ?? true;
@@ -1089,7 +1137,7 @@
                     document.getElementById('chkGuardar').checked = configGerais.chkGuardar ?? true;
                     document.getElementById('chkLivre').checked = configGerais.chkLivre ?? true;
                 }
-                salvarERenderizar(); alert('Backup restaurado com sucesso! E já está salvo na nuvem.');
+                salvarERenderizar(); alert('Backup restaurado com sucesso!');
             } catch(err) { alert('Arquivo de backup inválido.'); }
         }; reader.readAsText(file); event.target.value = '';
     }
@@ -1098,19 +1146,16 @@
         const linhas = [['Data','Descrição','Tipo','Categoria','Método','Status','Valor']];
         lancamentos.forEach(i => linhas.push([i.data || '', i.desc, i.tipo, i.cat, i.metodo, i.status, Number(i.valor || 0).toFixed(2)]));
         const csv = '\ufeff' + linhas.map(l => l.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(';')).join('\n');
-         baixarArquivo(csv, `lancamentos-${hojeISO()}.csv`, 'text/csv;charset=utf-8');
+        baixarArquivo(csv, `lancamentos-${hojeISO()}.csv`, 'text/csv;charset=utf-8');
     }
 
-    // --- CÁLCULO DAS BASES ---
     function calcularBases() {
         const renda = parseFloat(document.getElementById('baseRenda').value) || 0;
         
-        // Base 1 (Fixa)
         document.getElementById('b1Contas').innerText = formataMoeda(renda * 0.50);
         document.getElementById('b1Invest').innerText = formataMoeda(renda * 0.30);
         document.getElementById('b1Mim').innerText = formataMoeda(renda * 0.20);
 
-        // Base 2 (Dinâmica)
         const categorias = [
             { idElem: 'b2Mim', idChk: 'chkMim', pctOrig: 0.05 },
             { idElem: 'b2Doar', idChk: 'chkDoar', pctOrig: 0.10 },
