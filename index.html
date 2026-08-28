@@ -2,66 +2,74 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gorillas Financeiro - Sala de Guerra</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary: #f59e0b; 
-            --bg-dark: #121212;
-            --bg-card: #1e1e1e;
+            /* Nova Paleta Preto e Roxo */
+            --primary: #a855f7; /* Roxo vibrante */
+            --primary-hover: #9333ea;
+            --bg-dark: #000000; /* Fundo Preto */
+            --bg-card: #121212; /* Fundo dos cartões um pouco mais claro que o preto */
             --text-light: #f8fafc;
             --danger: #ef4444;
             --success: #10b981;
             --info: #3b82f6;
-            --border: #333;
+            --border: #27272a;
         }
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg-dark); color: var(--text-light); margin: 0; padding: 20px; }
+        body { background-color: var(--bg-dark); color: var(--text-light); margin: 0; padding: 15px; }
         
-        header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
-        h1 { margin: 0; color: var(--primary); outline: none; padding: 5px; border-radius: 5px; transition: 0.3s; }
-        h1:hover, h1:focus { background: #2a2a2a; border: 1px dashed var(--primary); }
-        h2 { border-bottom: 1px solid var(--border); padding-bottom: 5px; color: var(--primary); display: flex; justify-content: space-between; align-items: center;}
+        header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        h1 { margin: 0; color: var(--primary); outline: none; padding: 5px; border-radius: 5px; transition: 0.3s; font-size: 24px; line-height: 1.2; }
+        h1:hover, h1:focus { background: #1a1a1a; border: 1px dashed var(--primary); }
+        h2 { border-bottom: 1px solid var(--border); padding-bottom: 5px; color: var(--primary); display: flex; justify-content: space-between; align-items: center; font-size: 18px; flex-wrap: wrap; gap: 10px;}
         
+        /* Ajuste de Grid para Celular e Desktop */
         .container { max-width: 1200px; margin: 0 auto; display: grid; gap: 20px; grid-template-columns: 1fr; }
-        @media (min-width: 768px) { .container { grid-template-columns: 1fr 1fr; } }
+        @media (min-width: 992px) { .container { grid-template-columns: 1fr 1fr; } }
         
-        .card { background: var(--bg-card); padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .card { background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(168, 85, 247, 0.05); }
         .full-width { grid-column: 1 / -1; }
         
-        input, select, button { width: 100%; padding: 10px; margin: 5px 0 15px; border-radius: 5px; border: 1px solid var(--border); background: #2a2a2a; color: white; }
-        input[type="checkbox"] { width: auto; margin: 0; }
+        /* Font-size 16px evita o zoom automático no celular */
+        input, select, button { width: 100%; padding: 12px; margin: 5px 0 15px; border-radius: 6px; border: 1px solid var(--border); background: #18181b; color: white; font-size: 16px; }
+        input[type="checkbox"] { width: 24px; height: 24px; margin: 0; accent-color: var(--primary); }
         
-        button { background: var(--primary); color: #000; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; }
-        button:hover { filter: brightness(1.1); }
+        button { background: var(--primary); color: #fff; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; padding: 14px; font-size: 16px; }
+        button:hover { background: var(--primary-hover); }
         
-        .btn-small { width: auto; padding: 5px 10px; margin: 2px; font-size: 12px; }
+        .btn-small { width: auto; padding: 8px 12px; margin: 2px; font-size: 14px; border-radius: 4px; }
         .btn-clone { background: var(--info); color: white; }
         .btn-edit { background: var(--primary); color: white; }
         .btn-del { background: var(--danger); color: white; }
         .btn-cancel { background: var(--danger); color: white; display: none; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); }
-        th { color: var(--primary); }
+        /* Tabelas Responsivas com rolagem horizontal */
+        .table-responsive { width: 100%; overflow-x: auto; margin-top: 10px; border-radius: 6px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: 14px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
+        th { color: var(--primary); background: #18181b; white-space: nowrap; }
+        td { background: var(--bg-card); }
         
-        .flex-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .flex-row > * { flex: 1; min-width: 150px; }
+        /* Ajuste dos Flex-rows para quebrar linha em telas pequenas */
+        .flex-row { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+        .flex-row > * { flex: 1; min-width: 100%; }
+        @media (min-width: 600px) { .flex-row > * { min-width: 150px; } }
         
-        .total-box { font-size: 1.2em; font-weight: bold; text-align: right; color: var(--success); }
-        .checkbox-group { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
+        .total-box { font-size: 1.2em; font-weight: bold; text-align: right; color: var(--success); padding-top: 10px; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 15px; }
         
-        .progress-bar { background: #333; width: 100%; height: 20px; border-radius: 10px; overflow: hidden; margin-top: 5px; }
-        .progress-fill { background: var(--success); width: 0%; height: 100%; transition: width 0.5s; text-align: center; font-size: 12px; line-height: 20px; color: #000; font-weight: bold; }
+        .progress-bar { background: #27272a; width: 100%; height: 24px; border-radius: 12px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { background: var(--primary); width: 0%; height: 100%; transition: width 0.5s; text-align: center; font-size: 13px; line-height: 24px; color: #fff; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <header>
-    <!-- Título Editável -->
     <h1 contenteditable="true" id="tituloApp" onblur="salvarTitulo()">🦍 Gorillas - Gestão Financeira Pessoal</h1>
-    <p>Sua rota de fuga e construção de império.</p>
+    <p style="color: #a1a1aa; font-size: 14px;">Sua rota de fuga e construção de império.</p>
 </header>
 
 <div class="container">
@@ -75,36 +83,36 @@
     </div>
 
     <!-- POUPANÇA E METAS -->
-    <div class="card full-width" style="border-left: 4px solid var(--success);">
+    <div class="card full-width" style="border-left: 4px solid var(--primary);">
         <h2>Metas e Poupança</h2>
         <div class="flex-row">
             <div>
-                <label style="font-size: 12px; color: #aaa;">Valor da Meta (R$)</label>
+                <label style="font-size: 13px; color: #a1a1aa;">Valor da Meta (R$)</label>
                 <input type="number" id="metaTotal" placeholder="Ex: 10000" oninput="atualizarMetas()">
             </div>
             <div>
-                <label style="font-size: 12px; color: #aaa;">Depositar (R$)</label>
+                <label style="font-size: 13px; color: #a1a1aa;">Depositar (R$)</label>
                 <div style="display:flex; gap:5px;">
                     <input type="number" id="valorDeposito" placeholder="0.00" style="margin:0;">
-                    <button style="margin:0; background: var(--success); color: white;" onclick="movimentarPoupanca('deposito')">⬆️ Salvar</button>
+                    <button class="btn-small" style="margin:0; background: var(--success);" onclick="movimentarPoupanca('deposito')">⬆️ Salvar</button>
                 </div>
             </div>
             <div>
-                <label style="font-size: 12px; color: #aaa;">Retirar (R$)</label>
+                <label style="font-size: 13px; color: #a1a1aa;">Retirar (R$)</label>
                 <div style="display:flex; gap:5px;">
                     <input type="number" id="valorRetirada" placeholder="0.00" style="margin:0;">
-                    <button style="margin:0; background: var(--danger); color: white;" onclick="movimentarPoupanca('retirada')">⬇️ Tirar</button>
+                    <button class="btn-small" style="margin:0; background: var(--danger);" onclick="movimentarPoupanca('retirada')">⬇️ Tirar</button>
                 </div>
             </div>
         </div>
         
-        <div style="margin-top: 15px; background: #2a2a2a; padding: 15px; border-radius: 8px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                <span style="color: var(--success);">Total Guardado: <strong id="lblDepositado">R$ 0,00</strong></span>
-                <span style="color: var(--danger);">Total Retirado: <strong id="lblRetirado">R$ 0,00</strong></span>
-                <span style="font-size: 1.2em; color: var(--info);">Saldo Atual: <strong id="lblSaldoPoupanca">R$ 0,00</strong></span>
+        <div style="margin-top: 15px; background: #18181b; padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+            <div class="flex-row" style="justify-content: space-between; margin-bottom: 10px; font-size: 15px;">
+                <span style="color: var(--success); min-width: auto;">Guardado: <strong id="lblDepositado">R$ 0,00</strong></span>
+                <span style="color: var(--danger); min-width: auto;">Retirado: <strong id="lblRetirado">R$ 0,00</strong></span>
+                <span style="font-size: 1.1em; color: var(--primary); min-width: auto;">Saldo: <strong id="lblSaldoPoupanca">R$ 0,00</strong></span>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #aaa;">
+            <div style="display: flex; justify-content: space-between; font-size: 13px; color: #a1a1aa;">
                 <span>Progresso da Meta</span>
                 <span id="lblPorcentagemMeta">0%</span>
             </div>
@@ -153,21 +161,23 @@
             <button id="btn-cancel-lanc" class="btn-cancel" onclick="cancelarEdicao('lancamento')">Cancelar Edição</button>
         </div>
         
-        <table id="tabelaLancamentos">
-            <thead>
-                <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Método</th><th>Status</th><th>Valor</th><th>Ações</th></tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="table-responsive">
+            <table id="tabelaLancamentos">
+                <thead>
+                    <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Método</th><th>Status</th><th>Valor</th><th>Ações</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
     <!-- DÍVIDAS E CONTAS -->
     <div class="card full-width">
         <h2>
-            Estratégia Limpa Nome (Dívidas)
+            Estratégia Limpa Nome
             <span id="lblTotalDividas" style="color: var(--danger); font-size: 16px;">Total: R$ 0,00</span>
         </h2>
-        <p style="font-size: 12px; color: #aaa;">As dívidas serão ordenadas automaticamente da menor para a maior (Estratégia Bola de Neve).</p>
+        <p style="font-size: 13px; color: #a1a1aa;">Organização automática Método Snowball (Menor p/ Maior).</p>
         <div class="flex-row">
             <input type="text" id="divNome" placeholder="Nome da Conta/Credor">
             <select id="divTipo">
@@ -184,18 +194,19 @@
             <button id="btn-cancel-div" class="btn-cancel" onclick="cancelarEdicao('divida')">Cancelar Edição</button>
         </div>
         
-        <table id="tabelaDividas">
-            <thead>
-                <tr><th>Conta</th><th>Tipo</th><th>V. Original</th><th>V. Atual (A Pagar)</th><th>Ações</th></tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="table-responsive">
+            <table id="tabelaDividas">
+                <thead>
+                    <tr><th>Conta</th><th>Tipo</th><th>V. Original</th><th>V. Atual (A Pagar)</th><th>Ações</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
     <!-- LISTA DE COMPRAS -->
     <div class="card">
         <h2>Lista de Compras (Casa)</h2>
-        <p style="font-size: 12px; color: #aaa;">Adicione itens sem preço e edite no supermercado!</p>
         <div class="flex-row">
             <input type="text" id="compraItem" placeholder="Item (Ex: Arroz 5kg)">
             <input type="number" id="compraValor" placeholder="Preço (Opcional)">
@@ -205,35 +216,37 @@
             <button id="btn-cancel-compra" class="btn-cancel" onclick="cancelarEdicao('compra')">Cancelar</button>
         </div>
         
-        <table id="tabelaCompras">
-            <thead><tr><th>Item</th><th>Preço</th><th>Ações</th></tr></thead>
-            <tbody></tbody>
-        </table>
+        <div class="table-responsive">
+            <table id="tabelaCompras">
+                <thead><tr><th>Item</th><th>Preço</th><th>Ações</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
         <div class="total-box" id="totalCompras">Total: R$ 0,00</div>
     </div>
 
     <!-- BASES FINANCEIRAS -->
     <div class="card">
         <h2>Simulador de Bases Financeiras</h2>
-        <label style="font-size: 12px; color: #aaa;">Renda Mensal Fixa (Fica salvo)</label>
+        <label style="font-size: 13px; color: #a1a1aa;">Renda Mensal Fixa (Fica salvo)</label>
         <input type="number" id="baseRenda" placeholder="Renda Mensal a Distribuir (R$)" oninput="salvarRendaBase()">
         
         <div style="margin-top: 15px;">
-            <h3 style="color: #10b981;">Base 1: (50/30/20)</h3>
+            <h3 style="color: var(--primary);">Base 1: (50/30/20)</h3>
             <p>50% Contas: <strong id="b1Contas">R$ 0,00</strong></p>
             <p>30% Investir/Outros: <strong id="b1Invest">R$ 0,00</strong></p>
             <p>20% Para Mim: <strong id="b1Mim">R$ 0,00</strong></p>
         </div>
 
-        <div style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 10px;">
-            <h3 style="color: var(--info);">Base 2 Personalizada</h3>
-            <div class="checkbox-group"><input type="checkbox" id="chkMim" checked onchange="calcularBases()"> 5% Pra mim: <strong id="b2Mim" style="margin-left:auto;">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkDoar" checked onchange="calcularBases()"> 10% Doar: <strong id="b2Doar" style="margin-left:auto;">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkContas" checked onchange="calcularBases()"> 60% Contas: <strong id="b2Contas" style="margin-left:auto;">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkInvest" checked onchange="calcularBases()"> 10% Investir: <strong id="b2Invest" style="margin-left:auto;">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkGuardar" checked onchange="calcularBases()"> 10% Guardar: <strong id="b2Guardar" style="margin-left:auto;">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkLivre" checked onchange="calcularBases()"> 5% Usar p/ Qualquer Coisa: <strong id="b2Livre" style="margin-left:auto;">R$ 0,00</strong></div>
-            <p class="total-box">Total Distribuído: <span id="b2TotalDist">R$ 0,00</span></p>
+        <div style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+            <h3 style="color: var(--primary);">Base 2 Personalizada</h3>
+            <div class="checkbox-group"><input type="checkbox" id="chkMim" checked onchange="calcularBases()"> <span style="flex:1;">5% Pra mim:</span> <strong id="b2Mim">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkDoar" checked onchange="calcularBases()"> <span style="flex:1;">10% Doar:</span> <strong id="b2Doar">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkContas" checked onchange="calcularBases()"> <span style="flex:1;">60% Contas:</span> <strong id="b2Contas">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkInvest" checked onchange="calcularBases()"> <span style="flex:1;">10% Investir:</span> <strong id="b2Invest">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkGuardar" checked onchange="calcularBases()"> <span style="flex:1;">10% Guardar:</span> <strong id="b2Guardar">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkLivre" checked onchange="calcularBases()"> <span style="flex:1;">5% Usar p/ Coisas:</span> <strong id="b2Livre">R$ 0,00</strong></div>
+            <p class="total-box" style="border-top: 1px solid var(--border); margin-top: 15px;">Total Distribuído: <span id="b2TotalDist">R$ 0,00</span></p>
         </div>
     </div>
 
@@ -293,7 +306,6 @@
             lancamentos.push(item);
         }
         
-        // Limpar campos
         document.getElementById('lancDesc').value = '';
         document.getElementById('lancValor').value = '';
         salvarERenderizar();
@@ -313,7 +325,7 @@
         editandoId.lancamento = id;
         let btn = document.getElementById('btn-salvar-lanc');
         btn.innerText = "✓ Atualizar Lançamento";
-        btn.style.background = "#f59e0b"; // Lógica de cores inspirada na Hamburgueria Gorillas
+        btn.style.background = "var(--primary-hover)";
         document.getElementById('btn-cancel-lanc').style.display = "block";
     }
 
@@ -357,14 +369,14 @@
         editandoId.divida = id;
         let btn = document.getElementById('btn-salvar-div');
         btn.innerText = "✓ Atualizar Dívida";
-        btn.style.background = "#f59e0b";
+        btn.style.background = "var(--primary-hover)";
         document.getElementById('btn-cancel-div').style.display = "block";
     }
 
     // --- FUNÇÕES DE COMPRAS ---
     function addCompra() {
         const nome = document.getElementById('compraItem').value;
-        const valor = parseFloat(document.getElementById('compraValor').value) || 0; // Valor Opcional agora
+        const valor = parseFloat(document.getElementById('compraValor').value) || 0;
         
         if(!nome) return alert("Preencha pelo menos o nome do item!");
         
@@ -396,7 +408,7 @@
         editandoId.compra = id;
         let btn = document.getElementById('btn-salvar-compra');
         btn.innerText = "✓ Atualizar Compra";
-        btn.style.background = "#f59e0b";
+        btn.style.background = "var(--primary-hover)";
         document.getElementById('btn-cancel-compra').style.display = "block";
     }
 
@@ -506,9 +518,9 @@
                     <td>${dataStr}</td>
                     <td>${i.desc}</td><td>${i.cat}</td><td>${i.metodo}</td>
                     <td>${i.status}</td><td style="${corTipo}; font-weight:bold;">${formataMoeda(i.valor)}</td>
-                    <td style="min-width: 180px;">
+                    <td style="min-width: 140px;">
                         <button class="btn-small btn-edit" onclick="editarLancamento(${i.id})">✏️</button>
-                        <button class="btn-small btn-clone" onclick="clonar('lancamentos', ${i.id})">Clonar</button>
+                        <button class="btn-small btn-clone" onclick="clonar('lancamentos', ${i.id})">📄</button>
                         <button class="btn-small btn-del" onclick="deletar('lancamentos', ${i.id})">X</button>
                     </td>
                 </tr>
@@ -520,7 +532,6 @@
         const tbody = document.querySelector('#tabelaDividas tbody');
         tbody.innerHTML = '';
         
-        // Bola de neve (menor p/ maior)
         dividas.sort((a, b) => a.vAtual - b.vAtual);
         let total = 0;
 
@@ -529,11 +540,11 @@
             tbody.innerHTML += `
                 <tr>
                     <td>${i.nome}</td><td>${i.tipo}</td>
-                    <td style="text-decoration: line-through; color: #888;">${formataMoeda(i.vOriginal)}</td>
+                    <td style="text-decoration: line-through; color: #a1a1aa;">${formataMoeda(i.vOriginal)}</td>
                     <td style="color: var(--danger); font-weight:bold;">${formataMoeda(i.vAtual)}</td>
-                    <td style="min-width: 180px;">
+                    <td style="min-width: 140px;">
                         <button class="btn-small btn-edit" onclick="editarDivida(${i.id})">✏️</button>
-                        <button class="btn-small btn-clone" onclick="clonar('dividas', ${i.id})">Clonar</button>
+                        <button class="btn-small btn-clone" onclick="clonar('dividas', ${i.id})">📄</button>
                         <button class="btn-small btn-del" onclick="deletar('dividas', ${i.id})">X</button>
                     </td>
                 </tr>
@@ -548,13 +559,13 @@
         let total = 0;
         compras.forEach(i => {
             total += i.valor;
-            let displayValor = i.valor > 0 ? formataMoeda(i.valor) : '<span style="color:#aaa;">À definir</span>';
+            let displayValor = i.valor > 0 ? formataMoeda(i.valor) : '<span style="color:#a1a1aa;">À definir</span>';
             tbody.innerHTML += `
                 <tr>
                     <td>${i.nome}</td><td>${displayValor}</td>
-                    <td style="min-width: 180px;">
+                    <td style="min-width: 140px;">
                         <button class="btn-small btn-edit" onclick="editarCompra(${i.id})">✏️</button>
-                        <button class="btn-small btn-clone" onclick="clonar('compras', ${i.id})">Clonar</button>
+                        <button class="btn-small btn-clone" onclick="clonar('compras', ${i.id})">📄</button>
                         <button class="btn-small btn-del" onclick="deletar('compras', ${i.id})">X</button>
                     </td>
                 </tr>
@@ -604,11 +615,21 @@
                 datasets: [{
                     label: 'Resumo (R$)',
                     data: [totalEntradas, totalSaidas, totalDividas],
-                    backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                    backgroundColor: ['#10b981', '#ef4444', '#a855f7'],
                     borderWidth: 0
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#f8fafc' } }
+                },
+                scales: {
+                    y: { ticks: { color: '#a1a1aa' }, grid: { color: '#27272a' } },
+                    x: { ticks: { color: '#a1a1aa' }, grid: { color: '#27272a' } }
+                }
+            }
         });
     }
 </script>
