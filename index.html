@@ -1188,55 +1188,38 @@
         document.getElementById('b2TotalDist').innerText = formataMoeda(totalB2);
     }
 
-    function atualizarDashboardEGrafico() {
-        const mes = document.getElementById('mesReferencia').value || mesAtualISO();
-        const itensMes = lancamentos.filter(i => !i.data || i.data.startsWith(mes));
-        const totalEntradas = itensMes.filter(i => i.tipo === 'Entrada' && i.status === 'Pago').reduce((acc, i) => acc + Number(i.valor || 0), 0);
-        const totalSaidas = itensMes.filter(i => i.tipo === 'Saida' && i.status === 'Pago').reduce((acc, i) => acc + Number(i.valor || 0), 0);
-        const totalPendentes = itensMes.filter(i => i.tipo === 'Saida' && i.status === 'Pendente').reduce((acc, i) => acc + Number(i.valor || 0), 0);
-        const totalDividas = dividas.reduce((acc, i) => acc + saldoDivida(i), 0);
+function salvarNuvemSilencioso() {
+        let pacoteDados = {
+            lancamentos: lancamentos,
+            dividas: dividas,
+            compras: compras,
+            listaMetas: listaMetas,
+            orcamentos: orcamentos,
+            titulo: document.getElementById('tituloApp').innerText,
+            baseRenda: document.getElementById('baseRenda').value,
+            mesReferencia: document.getElementById('mesReferencia').value,
+            configGerais: configGerais,
+            simTransporte: JSON.parse(localStorage.getItem('simTransporte') || '{}')
+        };
         
-        let saldoGuardado = 0;
-        listaMetas.forEach(m => {
-            let saldo = (m.depositado || 0) - (m.retirado || 0);
-            if(saldo > 0) saldoGuardado += saldo;
-        });
-
-        const saldoMensal = totalEntradas - totalSaidas;
-
-        document.getElementById('dash-saldo').innerText = formataMoeda(saldoMensal);
-        document.getElementById('dash-saldo').style.color = saldoMensal >= 0 ? 'var(--success)' : 'var(--danger)';
-        document.getElementById('dash-dividas').innerText = formataMoeda(totalDividas);
-        document.getElementById('dash-guardado').innerText = formataMoeda(saldoGuardado);
-        document.getElementById('dash-pendente').innerText = formataMoeda(totalPendentes);
-        const saldoPrevisto = saldoMensal - totalPendentes;
-        document.getElementById('dash-previsto').innerText = formataMoeda(saldoPrevisto);
-        document.getElementById('dash-previsto').style.color = saldoPrevisto >= 0 ? 'var(--info)' : 'var(--danger)';
-
-        if(typeof Chart === 'undefined') return;
-        const ctx = document.getElementById('financeChart').getContext('2d');
-        if(chartInstance) chartInstance.destroy();
+        // 🛡️ O TRUQUE NINJA: Limpa qualquer "undefined" ou sujeira que o Google bloqueia
+        let pacoteLimpo = JSON.parse(JSON.stringify(pacoteDados));
         
-        chartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Entradas', 'Saídas Pagas', 'Pendentes', 'Total Dívidas', 'Metas Guardadas'],
-                datasets: [{
-                    label: 'Resumo (R$)',
-                    data: [totalEntradas, totalSaidas, totalPendentes, totalDividas, saldoGuardado],
-                    backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#fb7185', '#a855f7'],
-                    borderWidth: 0,
-                    borderRadius: 4
-                }]
-            },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { ticks: { color: '#a1a1aa' }, grid: { color: '#27272a' } },
-                    x: { ticks: { color: '#a1a1aa' }, grid: { display: false } }
-                }
+        // Backup Local Imediato
+        localStorage.setItem('vitoria_backup', JSON.stringify(pacoteLimpo));
+        
+        // Envia para o Firebase a versão 100% limpa
+        documentoGeral.set(pacoteLimpo).then(() => {
+            let el = document.getElementById('statusNuvem');
+            if(el) { el.innerText = "Conectado ✅"; el.style.color = "var(--success)"; }
+        }).catch(err => {
+            console.error("Falha no envio para nuvem:", err);
+            let el = document.getElementById('statusNuvem');
+            if(el) { el.innerText = "Salvo Localmente ⚠️"; el.style.color = "var(--warning)"; }
+            
+            // Alerta na tela se o problema for a porta trancada no Google
+            if(err.message.includes("permissions") || err.message.includes("Missing or insufficient")) {
+                alert("⚠️ O Google bloqueou o salvamento! Você precisa abrir as Regras do FIRESTORE DATABASE.");
             }
         });
     }
