@@ -3,8 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gorillas Financeiro - Sala de Guerra</title>
+    <title>Gorillas Financeiro - Nuvem</title>
+    
+    <!-- Bibliotecas e Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- SDKs do Firebase (Versão 8 Compat para rodar nativamente em arquivo único) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
     <style>
         :root {
             --primary: #a855f7; 
@@ -21,11 +28,13 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-light); margin: 0; padding: 15px; }
         
-        header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; position: relative;}
         h1 { margin: 0; color: var(--primary); outline: none; padding: 5px; border-radius: 5px; transition: 0.3s; font-size: 24px; line-height: 1.2; }
         h1:hover, h1:focus { background: #1a1a1a; border: 1px dashed var(--primary); }
         h2 { border-bottom: 1px solid var(--border); padding-bottom: 5px; color: var(--primary); display: flex; justify-content: space-between; align-items: center; font-size: 18px; flex-wrap: wrap; gap: 10px;}
         
+        .status-nuvem { position: absolute; right: 10px; top: 10px; font-size: 12px; color: var(--success); font-weight: bold;}
+
         .container { max-width: 1200px; margin: 0 auto; display: grid; gap: 20px; grid-template-columns: 1fr; }
         @media (min-width: 992px) { .container { grid-template-columns: 1fr 1fr; } }
         
@@ -66,12 +75,18 @@
         .dash-card p { margin: 0; font-size: 24px; font-weight: bold; }
 
         .meta-card { background: #18181b; padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; }
+        
+        /* Overlay Carregamento Inicial */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 9999; color: var(--primary); font-size: 20px; font-weight: bold;}
     </style>
 </head>
 <body>
 
+<div id="loader">Conectando ao Firebase... 🦍☁️</div>
+
 <header>
-    <h1 contenteditable="true" id="tituloApp" onblur="salvarTitulo()">🦍 Gorillas - Gestão Financeira Pessoal</h1>
+    <div class="status-nuvem" id="statusNuvem">Conectado ✅</div>
+    <h1 contenteditable="true" id="tituloApp" onblur="salvarTitulo()">🦍 Gorillas - Gestão Financeira</h1>
     <p style="color: #a1a1aa; font-size: 14px;">Visão Geral e Controle Tático.</p>
 </header>
 
@@ -234,12 +249,12 @@
         <div style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
             <h3 style="color: var(--primary);">Base 2 (Redistribuição Dinâmica)</h3>
             <p style="font-size: 12px; color: #a1a1aa;">Desmarque um item e o valor será rateado entre os ativos.</p>
-            <div class="checkbox-group"><input type="checkbox" id="chkMim" checked onchange="calcularBases()"> <span style="flex:1;">Pra mim (Original 5%):</span> <strong id="b2Mim">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkDoar" checked onchange="calcularBases()"> <span style="flex:1;">Doar (Original 10%):</span> <strong id="b2Doar">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkContas" checked onchange="calcularBases()"> <span style="flex:1;">Contas (Original 60%):</span> <strong id="b2Contas">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkInvest" checked onchange="calcularBases()"> <span style="flex:1;">Investir (Original 10%):</span> <strong id="b2Invest">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkGuardar" checked onchange="calcularBases()"> <span style="flex:1;">Guardar (Original 10%):</span> <strong id="b2Guardar">R$ 0,00</strong></div>
-            <div class="checkbox-group"><input type="checkbox" id="chkLivre" checked onchange="calcularBases()"> <span style="flex:1;">Livre (Original 5%):</span> <strong id="b2Livre">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkMim" checked onchange="calcularBases(true)"> <span style="flex:1;">Pra mim (Original 5%):</span> <strong id="b2Mim">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkDoar" checked onchange="calcularBases(true)"> <span style="flex:1;">Doar (Original 10%):</span> <strong id="b2Doar">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkContas" checked onchange="calcularBases(true)"> <span style="flex:1;">Contas (Original 60%):</span> <strong id="b2Contas">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkInvest" checked onchange="calcularBases(true)"> <span style="flex:1;">Investir (Original 10%):</span> <strong id="b2Invest">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkGuardar" checked onchange="calcularBases(true)"> <span style="flex:1;">Guardar (Original 10%):</span> <strong id="b2Guardar">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkLivre" checked onchange="calcularBases(true)"> <span style="flex:1;">Livre (Original 5%):</span> <strong id="b2Livre">R$ 0,00</strong></div>
             <p class="total-box" style="border-top: 1px solid var(--border); margin-top: 15px;">Total Distribuído: <span id="b2TotalDist">R$ 0,00</span></p>
         </div>
     </div>
@@ -247,27 +262,98 @@
 </div>
 
 <script>
-    // ESTADOS
-    let lancamentos = JSON.parse(localStorage.getItem('lancamentos')) || [];
-    let dividas = JSON.parse(localStorage.getItem('dividas')) || [];
-    let compras = JSON.parse(localStorage.getItem('compras')) || [];
-    let listaMetas = JSON.parse(localStorage.getItem('listaMetas')) || [];
+    // 1. CONFIGURAÇÃO DO FIREBASE (Chaves do seu projeto gorillaz-burguer)
+    const firebaseConfig = {
+        apiKey: "AIzaSyA5oTLxYfcCpjC-4KUdl4P4S62f8uUWeqE",
+        authDomain: "gorillaz-burguer.firebaseapp.com",
+        databaseURL: "https://gorillaz-burguer-default-rtdb.firebaseio.com",
+        projectId: "gorillaz-burguer",
+        storageBucket: "gorillaz-burguer.firebasestorage.app",
+        messagingSenderId: "1026686913803",
+        appId: "1:1026686913803:web:5ae4e74aa85378716fe60e",
+        measurementId: "G-5F1BZMPL5L"
+    };
+
+    // Inicializa Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const documentoGeral = db.collection('sistemaFinanceiro').doc('gabriel_dados');
+
+    // ESTADOS (Bancos de dados locais temporários)
+    let lancamentos = [];
+    let dividas = [];
+    let compras = [];
+    let listaMetas = [];
+    let configGerais = {
+        chkMim: true, chkDoar: true, chkContas: true, 
+        chkInvest: true, chkGuardar: true, chkLivre: true
+    };
+    
     let editandoId = { lancamento: null, divida: null, compra: null, meta: null };
     let chartInstance = null;
 
+    // Utilitário
     function formataMoeda(v) { return v.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}); }
-    
+
+    // Ao carregar a página, buscar dados da nuvem
     window.onload = () => {
-        let tituloSalvo = localStorage.getItem('tituloApp');
-        if(tituloSalvo) document.getElementById('tituloApp').innerText = tituloSalvo;
-        let rendaSalva = localStorage.getItem('baseRenda');
-        if(rendaSalva) document.getElementById('baseRenda').value = rendaSalva;
-        salvarERenderizar();
+        documentoGeral.get().then((doc) => {
+            if (doc.exists) {
+                const dados = doc.data();
+                lancamentos = dados.lancamentos || [];
+                dividas = dados.dividas || [];
+                compras = dados.compras || [];
+                listaMetas = dados.listaMetas || [];
+                
+                if(dados.tituloApp) document.getElementById('tituloApp').innerText = dados.tituloApp;
+                if(dados.baseRenda) document.getElementById('baseRenda').value = dados.baseRenda;
+                
+                if(dados.configGerais) {
+                    configGerais = dados.configGerais;
+                    document.getElementById('chkMim').checked = configGerais.chkMim;
+                    document.getElementById('chkDoar').checked = configGerais.chkDoar;
+                    document.getElementById('chkContas').checked = configGerais.chkContas;
+                    document.getElementById('chkInvest').checked = configGerais.chkInvest;
+                    document.getElementById('chkGuardar').checked = configGerais.chkGuardar;
+                    document.getElementById('chkLivre').checked = configGerais.chkLivre;
+                }
+            }
+            // Remove a tela de carregamento e renderiza
+            document.getElementById('loader').style.display = 'none';
+            renderTudo();
+        }).catch((error) => {
+            console.error("Erro ao buscar dados do Firebase:", error);
+            document.getElementById('loader').style.display = 'none';
+            alert("Erro ao conectar no banco de dados. Verifique a internet.");
+        });
     };
 
-    function salvarTitulo() { localStorage.setItem('tituloApp', document.getElementById('tituloApp').innerText); }
-    function salvarRendaBase() { localStorage.setItem('baseRenda', document.getElementById('baseRenda').value); calcularBases(); }
+    // --- LÓGICA DE SALVAMENTO EM NUVEM (Substitui o LocalStorage) ---
+    function salvarNaNuvem() {
+        // Atualiza o HTML local instantaneamente (Interface Otimista)
+        renderTudo(); 
+        
+        // Envia para o servidor silenciosamente
+        documentoGeral.set({
+            lancamentos: lancamentos,
+            dividas: dividas,
+            compras: compras,
+            listaMetas: listaMetas,
+            tituloApp: document.getElementById('tituloApp').innerText,
+            baseRenda: document.getElementById('baseRenda').value,
+            configGerais: configGerais
+        }).catch(err => {
+            console.error("Falha no backup:", err);
+            document.getElementById('statusNuvem').innerText = "Erro ao Salvar ❌";
+            document.getElementById('statusNuvem').style.color = "var(--danger)";
+        });
+    }
 
+    // Ações Rápidas de Config
+    function salvarTitulo() { salvarNaNuvem(); }
+    function salvarRendaBase() { salvarNaNuvem(); }
+
+    // --- FUNÇÕES DE LANÇAMENTOS ---
     function addLancamento() {
         const desc = document.getElementById('lancDesc').value;
         const valor = parseFloat(document.getElementById('lancValor').value) || 0;
@@ -275,10 +361,8 @@
         
         const item = {
             id: editandoId.lancamento || Date.now(),
-            desc: desc,
-            tipo: document.getElementById('lancTipo').value,
-            cat: document.getElementById('lancCat').value,
-            valor: valor,
+            desc: desc, tipo: document.getElementById('lancTipo').value,
+            cat: document.getElementById('lancCat').value, valor: valor,
             data: document.getElementById('lancData').value,
             metodo: document.getElementById('lancMetodo').value,
             status: document.getElementById('lancStatus').value
@@ -293,7 +377,7 @@
             document.getElementById('lancDesc').value = '';
             document.getElementById('lancValor').value = '';
         }
-        salvarERenderizar();
+        salvarNaNuvem();
     }
 
     function editarLancamento(id) {
@@ -309,12 +393,12 @@
         
         editandoId.lancamento = id;
         let btn = document.getElementById('btn-salvar-lanc');
-        btn.innerText = "✓ Atualizar Lançamento";
-        btn.style.background = "var(--warning)";
+        btn.innerText = "✓ Atualizar Lançamento"; btn.style.background = "var(--warning)";
         document.getElementById('btn-cancel-lanc').style.display = "block";
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // --- DÍVIDAS ---
     function addDivida() {
         const nome = document.getElementById('divNome').value;
         const vAtual = parseFloat(document.getElementById('divValorAtual').value) || 0;
@@ -322,8 +406,7 @@
         
         const item = {
             id: editandoId.divida || Date.now(),
-            nome: nome,
-            tipo: document.getElementById('divTipo').value,
+            nome: nome, tipo: document.getElementById('divTipo').value,
             vOriginal: parseFloat(document.getElementById('divValorOriginal').value) || 0,
             vAtual: vAtual
         };
@@ -338,7 +421,7 @@
             document.getElementById('divValorOriginal').value = '';
             document.getElementById('divValorAtual').value = '';
         }
-        salvarERenderizar();
+        salvarNaNuvem();
     }
 
     function editarDivida(id) {
@@ -351,11 +434,11 @@
         
         editandoId.divida = id;
         let btn = document.getElementById('btn-salvar-div');
-        btn.innerText = "✓ Atualizar Dívida";
-        btn.style.background = "var(--warning)";
+        btn.innerText = "✓ Atualizar Dívida"; btn.style.background = "var(--warning)";
         document.getElementById('btn-cancel-div').style.display = "block";
     }
 
+    // --- COMPRAS ---
     function addCompra() {
         const nome = document.getElementById('compraItem').value;
         const valor = parseFloat(document.getElementById('compraValor').value) || 0;
@@ -363,8 +446,7 @@
         
         const item = {
             id: editandoId.compra || Date.now(),
-            nome: nome,
-            valor: valor,
+            nome: nome, valor: valor,
             comprado: editandoId.compra ? compras.find(i => i.id === editandoId.compra).comprado : false
         };
 
@@ -377,7 +459,7 @@
             document.getElementById('compraItem').value = '';
             document.getElementById('compraValor').value = '';
         }
-        salvarERenderizar();
+        salvarNaNuvem();
     }
 
     function editarCompra(id) {
@@ -388,28 +470,24 @@
         
         editandoId.compra = id;
         let btn = document.getElementById('btn-salvar-compra');
-        btn.innerText = "✓ Atualizar Compra";
-        btn.style.background = "var(--warning)";
+        btn.innerText = "✓ Atualizar Compra"; btn.style.background = "var(--warning)";
         document.getElementById('btn-cancel-compra').style.display = "block";
     }
 
     function toggleCompra(id) {
         let item = compras.find(i => i.id === id);
-        if(item) {
-            item.comprado = !item.comprado;
-            salvarERenderizar();
-        }
+        if(item) { item.comprado = !item.comprado; salvarNaNuvem(); }
     }
 
+    // --- METAS ---
     function addMeta() {
         const nome = document.getElementById('novaMetaNome').value;
         const valor = parseFloat(document.getElementById('novaMetaValor').value) || 0;
-        if(!nome || valor <= 0) return alert("Preencha nome e valor alvo da meta!");
+        if(!nome || valor <= 0) return alert("Preencha nome e valor alvo!");
 
         const item = {
             id: editandoId.meta || Date.now(),
-            nome: nome,
-            valorAlvo: valor,
+            nome: nome, valorAlvo: valor,
             depositado: editandoId.meta ? listaMetas.find(m => m.id === editandoId.meta).depositado : 0,
             retirado: editandoId.meta ? listaMetas.find(m => m.id === editandoId.meta).retirado : 0
         };
@@ -423,7 +501,7 @@
             document.getElementById('novaMetaNome').value = '';
             document.getElementById('novaMetaValor').value = '';
         }
-        salvarERenderizar();
+        salvarNaNuvem();
     }
 
     function transacaoMeta(id, tipo) {
@@ -433,7 +511,7 @@
         if(meta) {
             if(tipo === 'in') meta.depositado += valor;
             if(tipo === 'out') meta.retirado += valor;
-            salvarERenderizar();
+            salvarNaNuvem();
         }
     }
 
@@ -445,7 +523,7 @@
         
         if(novoDepositado !== null) meta.depositado = parseFloat(novoDepositado) || 0;
         if(novoRetirado !== null) meta.retirado = parseFloat(novoRetirado) || 0;
-        salvarERenderizar();
+        salvarNaNuvem();
     }
 
     function editarMetaBase(id) {
@@ -455,8 +533,7 @@
         document.getElementById('novaMetaValor').value = meta.valorAlvo;
         editandoId.meta = id;
         let btn = document.getElementById('btn-salvar-meta');
-        btn.innerText = "✓ Atualizar Meta";
-        btn.style.background = "var(--warning)";
+        btn.innerText = "✓ Atualizar Meta"; btn.style.background = "var(--warning)";
         document.getElementById('btn-cancel-meta').style.display = "block";
     }
 
@@ -465,18 +542,18 @@
         document.getElementById('novaMetaNome').value = '';
         document.getElementById('novaMetaValor').value = '';
         let btn = document.getElementById('btn-salvar-meta');
-        btn.innerText = "➕ Criar Meta"; 
-        btn.style.background = "var(--primary)";
+        btn.innerText = "➕ Criar Meta"; btn.style.background = "var(--primary)";
         document.getElementById('btn-cancel-meta').style.display = "none";
     }
 
     function deletarMeta(id) {
         if(confirm("Tem certeza que deseja excluir esta meta?")) {
             listaMetas = listaMetas.filter(m => m.id !== id);
-            salvarERenderizar();
+            salvarNaNuvem();
         }
     }
 
+    // --- AÇÕES GLOBAIS ---
     function cancelarEdicao(tipo) {
         editandoId[tipo] = null;
         if(tipo === 'lancamento') {
@@ -504,7 +581,7 @@
             if(tipo === 'lancamentos') lancamentos = lancamentos.filter(i => i.id !== id);
             if(tipo === 'dividas') dividas = dividas.filter(i => i.id !== id);
             if(tipo === 'compras') compras = compras.filter(i => i.id !== id);
-            salvarERenderizar();
+            salvarNaNuvem();
         }
     }
 
@@ -514,21 +591,17 @@
         if(item) {
             let clone = {...item, id: Date.now()}; 
             lista.push(clone);
-            salvarERenderizar();
+            salvarNaNuvem();
         }
     }
 
-    function salvarERenderizar() {
-        localStorage.setItem('lancamentos', JSON.stringify(lancamentos));
-        localStorage.setItem('dividas', JSON.stringify(dividas));
-        localStorage.setItem('compras', JSON.stringify(compras));
-        localStorage.setItem('listaMetas', JSON.stringify(listaMetas));
-        
+    // --- RENDERIZADORES ---
+    function renderTudo() {
         renderLancamentos();
         renderDividas();
         renderCompras();
         renderMetas();
-        calcularBases();
+        calcularBases(false);
         atualizarDashboardEGrafico();
     }
 
@@ -540,8 +613,7 @@
             let dataStr = i.data ? i.data.split('-').reverse().join('/') : 'Sem Data';
             tbody.innerHTML += `
                 <tr>
-                    <td>${dataStr}</td>
-                    <td>${i.desc}</td><td>${i.cat}</td><td>${i.metodo}</td>
+                    <td>${dataStr}</td><td>${i.desc}</td><td>${i.cat}</td><td>${i.metodo}</td>
                     <td>${i.status}</td><td style="${corTipo}; font-weight:bold;">${formataMoeda(i.valor)}</td>
                     <td style="min-width: 140px;">
                         <button class="btn-small btn-edit" onclick="editarLancamento(${i.id})">✏️</button>
@@ -644,16 +716,13 @@
         document.getElementById('lblTotalMetas').innerText = `Total Guardado: ${formataMoeda(saldoTotalGeral)}`;
     }
 
-    // --- NOVA LÓGICA DE REDISTRIBUIÇÃO DE BASES ---
-    function calcularBases() {
+    function calcularBases(foiClicado = false) {
         const renda = parseFloat(document.getElementById('baseRenda').value) || 0;
         
-        // Base 1 (Fixa)
         document.getElementById('b1Contas').innerText = formataMoeda(renda * 0.50);
         document.getElementById('b1Invest').innerText = formataMoeda(renda * 0.30);
         document.getElementById('b1Mim').innerText = formataMoeda(renda * 0.20);
 
-        // Base 2 (Dinâmica)
         const categorias = [
             { idElem: 'b2Mim', idChk: 'chkMim', pctOrig: 0.05 },
             { idElem: 'b2Doar', idChk: 'chkDoar', pctOrig: 0.10 },
@@ -668,13 +737,13 @@
             if (document.getElementById(cat.idChk).checked) {
                 pctAtivaTotal += cat.pctOrig;
             }
+            configGerais[cat.idChk] = document.getElementById(cat.idChk).checked;
         });
 
         let totalB2 = 0;
         categorias.forEach(cat => {
             let valor = 0;
             if (document.getElementById(cat.idChk).checked && pctAtivaTotal > 0) {
-                // Rateia o valor proporcionalmente entre as opções marcadas
                 let pctReal = cat.pctOrig / pctAtivaTotal;
                 valor = renda * pctReal;
             }
@@ -683,6 +752,8 @@
         });
         
         document.getElementById('b2TotalDist').innerText = formataMoeda(totalB2);
+        
+        if(foiClicado) salvarNaNuvem();
     }
 
     function atualizarDashboardEGrafico() {
@@ -719,8 +790,7 @@
                 }]
             },
             options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
                     y: { ticks: { color: '#a1a1aa' }, grid: { color: '#27272a' } },
