@@ -1,1 +1,617 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gorillas Financeiro - Sala de Guerra</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #f59e0b; 
+            --bg-dark: #121212;
+            --bg-card: #1e1e1e;
+            --text-light: #f8fafc;
+            --danger: #ef4444;
+            --success: #10b981;
+            --info: #3b82f6;
+            --border: #333;
+        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-light); margin: 0; padding: 20px; }
+        
+        header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        h1 { margin: 0; color: var(--primary); outline: none; padding: 5px; border-radius: 5px; transition: 0.3s; }
+        h1:hover, h1:focus { background: #2a2a2a; border: 1px dashed var(--primary); }
+        h2 { border-bottom: 1px solid var(--border); padding-bottom: 5px; color: var(--primary); display: flex; justify-content: space-between; align-items: center;}
+        
+        .container { max-width: 1200px; margin: 0 auto; display: grid; gap: 20px; grid-template-columns: 1fr; }
+        @media (min-width: 768px) { .container { grid-template-columns: 1fr 1fr; } }
+        
+        .card { background: var(--bg-card); padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .full-width { grid-column: 1 / -1; }
+        
+        input, select, button { width: 100%; padding: 10px; margin: 5px 0 15px; border-radius: 5px; border: 1px solid var(--border); background: #2a2a2a; color: white; }
+        input[type="checkbox"] { width: auto; margin: 0; }
+        
+        button { background: var(--primary); color: #000; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; }
+        button:hover { filter: brightness(1.1); }
+        
+        .btn-small { width: auto; padding: 5px 10px; margin: 2px; font-size: 12px; }
+        .btn-clone { background: var(--info); color: white; }
+        .btn-edit { background: var(--primary); color: white; }
+        .btn-del { background: var(--danger); color: white; }
+        .btn-cancel { background: var(--danger); color: white; display: none; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); }
+        th { color: var(--primary); }
+        
+        .flex-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .flex-row > * { flex: 1; min-width: 150px; }
+        
+        .total-box { font-size: 1.2em; font-weight: bold; text-align: right; color: var(--success); }
+        .checkbox-group { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
+        
+        .progress-bar { background: #333; width: 100%; height: 20px; border-radius: 10px; overflow: hidden; margin-top: 5px; }
+        .progress-fill { background: var(--success); width: 0%; height: 100%; transition: width 0.5s; text-align: center; font-size: 12px; line-height: 20px; color: #000; font-weight: bold; }
+    </style>
+</head>
+<body>
 
+<header>
+    <!-- Título Editável -->
+    <h1 contenteditable="true" id="tituloApp" onblur="salvarTitulo()">🦍 Gorillas - Gestão Financeira Pessoal</h1>
+    <p>Sua rota de fuga e construção de império.</p>
+</header>
+
+<div class="container">
+    
+    <!-- DASHBOARD -->
+    <div class="card full-width">
+        <h2>Dashboard Resumo</h2>
+        <div style="height: 250px; position: relative;">
+            <canvas id="financeChart"></canvas>
+        </div>
+    </div>
+
+    <!-- POUPANÇA E METAS -->
+    <div class="card full-width" style="border-left: 4px solid var(--success);">
+        <h2>Metas e Poupança</h2>
+        <div class="flex-row">
+            <div>
+                <label style="font-size: 12px; color: #aaa;">Valor da Meta (R$)</label>
+                <input type="number" id="metaTotal" placeholder="Ex: 10000" oninput="atualizarMetas()">
+            </div>
+            <div>
+                <label style="font-size: 12px; color: #aaa;">Depositar (R$)</label>
+                <div style="display:flex; gap:5px;">
+                    <input type="number" id="valorDeposito" placeholder="0.00" style="margin:0;">
+                    <button style="margin:0; background: var(--success); color: white;" onclick="movimentarPoupanca('deposito')">⬆️ Salvar</button>
+                </div>
+            </div>
+            <div>
+                <label style="font-size: 12px; color: #aaa;">Retirar (R$)</label>
+                <div style="display:flex; gap:5px;">
+                    <input type="number" id="valorRetirada" placeholder="0.00" style="margin:0;">
+                    <button style="margin:0; background: var(--danger); color: white;" onclick="movimentarPoupanca('retirada')">⬇️ Tirar</button>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 15px; background: #2a2a2a; padding: 15px; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span style="color: var(--success);">Total Guardado: <strong id="lblDepositado">R$ 0,00</strong></span>
+                <span style="color: var(--danger);">Total Retirado: <strong id="lblRetirado">R$ 0,00</strong></span>
+                <span style="font-size: 1.2em; color: var(--info);">Saldo Atual: <strong id="lblSaldoPoupanca">R$ 0,00</strong></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #aaa;">
+                <span>Progresso da Meta</span>
+                <span id="lblPorcentagemMeta">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="barraMeta"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTROLE MENSAL -->
+    <div class="card full-width">
+        <h2>Lançamentos / Controle Mensal</h2>
+        <div class="flex-row">
+            <input type="text" id="lancDesc" placeholder="Descrição (Ex: Salário, Conta)">
+            <select id="lancTipo">
+                <option value="Entrada">Entrada (Receita)</option>
+                <option value="Saida">Saída (Despesa)</option>
+            </select>
+            <select id="lancCat">
+                <option value="Salario">Salário</option>
+                <option value="Renda Extra">Renda Extra</option>
+                <option value="Alimentacao">Alimentação</option>
+                <option value="Moradia">Moradia</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Outros">Outros</option>
+            </select>
+        </div>
+        <div class="flex-row">
+            <input type="number" id="lancValor" placeholder="Valor (R$)">
+            <input type="date" id="lancData">
+            <select id="lancMetodo">
+                <option value="PIX">PIX</option>
+                <option value="Credito">Crédito</option>
+                <option value="Debito">Débito</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Alelo">Alelo/Benefício</option>
+                <option value="Outros">Outros</option>
+            </select>
+            <select id="lancStatus">
+                <option value="Pago">Pago</option>
+                <option value="Pendente">Pendente</option>
+            </select>
+        </div>
+        <div class="flex-row" style="margin-top: 10px;">
+            <button id="btn-salvar-lanc" onclick="addLancamento()">➕ Adicionar Lançamento</button>
+            <button id="btn-cancel-lanc" class="btn-cancel" onclick="cancelarEdicao('lancamento')">Cancelar Edição</button>
+        </div>
+        
+        <table id="tabelaLancamentos">
+            <thead>
+                <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Método</th><th>Status</th><th>Valor</th><th>Ações</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- DÍVIDAS E CONTAS -->
+    <div class="card full-width">
+        <h2>
+            Estratégia Limpa Nome (Dívidas)
+            <span id="lblTotalDividas" style="color: var(--danger); font-size: 16px;">Total: R$ 0,00</span>
+        </h2>
+        <p style="font-size: 12px; color: #aaa;">As dívidas serão ordenadas automaticamente da menor para a maior (Estratégia Bola de Neve).</p>
+        <div class="flex-row">
+            <input type="text" id="divNome" placeholder="Nome da Conta/Credor">
+            <select id="divTipo">
+                <option value="Serasa">Serasa / Negociação</option>
+                <option value="Emprestimo">Empréstimo</option>
+                <option value="Cartao">Cartão de Crédito</option>
+                <option value="Avulsa">Conta Avulsa</option>
+            </select>
+            <input type="number" id="divValorOriginal" placeholder="Valor Original (R$)">
+            <input type="number" id="divValorAtual" placeholder="Por quanto está saindo? (R$)">
+        </div>
+        <div class="flex-row" style="margin-top: 10px;">
+            <button id="btn-salvar-div" onclick="addDivida()">➕ Adicionar Dívida</button>
+            <button id="btn-cancel-div" class="btn-cancel" onclick="cancelarEdicao('divida')">Cancelar Edição</button>
+        </div>
+        
+        <table id="tabelaDividas">
+            <thead>
+                <tr><th>Conta</th><th>Tipo</th><th>V. Original</th><th>V. Atual (A Pagar)</th><th>Ações</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- LISTA DE COMPRAS -->
+    <div class="card">
+        <h2>Lista de Compras (Casa)</h2>
+        <p style="font-size: 12px; color: #aaa;">Adicione itens sem preço e edite no supermercado!</p>
+        <div class="flex-row">
+            <input type="text" id="compraItem" placeholder="Item (Ex: Arroz 5kg)">
+            <input type="number" id="compraValor" placeholder="Preço (Opcional)">
+        </div>
+        <div class="flex-row" style="margin-top: 10px;">
+            <button id="btn-salvar-compra" onclick="addCompra()">➕ Adicionar à Lista</button>
+            <button id="btn-cancel-compra" class="btn-cancel" onclick="cancelarEdicao('compra')">Cancelar</button>
+        </div>
+        
+        <table id="tabelaCompras">
+            <thead><tr><th>Item</th><th>Preço</th><th>Ações</th></tr></thead>
+            <tbody></tbody>
+        </table>
+        <div class="total-box" id="totalCompras">Total: R$ 0,00</div>
+    </div>
+
+    <!-- BASES FINANCEIRAS -->
+    <div class="card">
+        <h2>Simulador de Bases Financeiras</h2>
+        <label style="font-size: 12px; color: #aaa;">Renda Mensal Fixa (Fica salvo)</label>
+        <input type="number" id="baseRenda" placeholder="Renda Mensal a Distribuir (R$)" oninput="salvarRendaBase()">
+        
+        <div style="margin-top: 15px;">
+            <h3 style="color: #10b981;">Base 1: (50/30/20)</h3>
+            <p>50% Contas: <strong id="b1Contas">R$ 0,00</strong></p>
+            <p>30% Investir/Outros: <strong id="b1Invest">R$ 0,00</strong></p>
+            <p>20% Para Mim: <strong id="b1Mim">R$ 0,00</strong></p>
+        </div>
+
+        <div style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 10px;">
+            <h3 style="color: var(--info);">Base 2 Personalizada</h3>
+            <div class="checkbox-group"><input type="checkbox" id="chkMim" checked onchange="calcularBases()"> 5% Pra mim: <strong id="b2Mim" style="margin-left:auto;">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkDoar" checked onchange="calcularBases()"> 10% Doar: <strong id="b2Doar" style="margin-left:auto;">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkContas" checked onchange="calcularBases()"> 60% Contas: <strong id="b2Contas" style="margin-left:auto;">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkInvest" checked onchange="calcularBases()"> 10% Investir: <strong id="b2Invest" style="margin-left:auto;">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkGuardar" checked onchange="calcularBases()"> 10% Guardar: <strong id="b2Guardar" style="margin-left:auto;">R$ 0,00</strong></div>
+            <div class="checkbox-group"><input type="checkbox" id="chkLivre" checked onchange="calcularBases()"> 5% Usar p/ Qualquer Coisa: <strong id="b2Livre" style="margin-left:auto;">R$ 0,00</strong></div>
+            <p class="total-box">Total Distribuído: <span id="b2TotalDist">R$ 0,00</span></p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ESTADOS (Bancos de dados locais)
+    let lancamentos = JSON.parse(localStorage.getItem('lancamentos')) || [];
+    let dividas = JSON.parse(localStorage.getItem('dividas')) || [];
+    let compras = JSON.parse(localStorage.getItem('compras')) || [];
+    let metas = JSON.parse(localStorage.getItem('metas')) || { depositado: 0, retirado: 0, valorMeta: 0 };
+    
+    let editandoId = { lancamento: null, divida: null, compra: null };
+    let chartInstance = null;
+
+    // --- FUNÇÕES INICIAIS E UTILITÁRIOS ---
+    function formataMoeda(v) { return v.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}); }
+    
+    window.onload = () => {
+        let tituloSalvo = localStorage.getItem('tituloApp');
+        if(tituloSalvo) document.getElementById('tituloApp').innerText = tituloSalvo;
+        
+        let rendaSalva = localStorage.getItem('baseRenda');
+        if(rendaSalva) document.getElementById('baseRenda').value = rendaSalva;
+        
+        document.getElementById('metaTotal').value = metas.valorMeta || '';
+        
+        salvarERenderizar();
+    };
+
+    function salvarTitulo() { localStorage.setItem('tituloApp', document.getElementById('tituloApp').innerText); }
+    function salvarRendaBase() { localStorage.setItem('baseRenda', document.getElementById('baseRenda').value); calcularBases(); }
+
+    // --- FUNÇÕES DE LANÇAMENTOS ---
+    function addLancamento() {
+        const desc = document.getElementById('lancDesc').value;
+        const valor = parseFloat(document.getElementById('lancValor').value) || 0;
+        
+        if(!desc || valor <= 0) return alert("Preencha descrição e valor!");
+        
+        const item = {
+            id: editandoId.lancamento || Date.now(),
+            desc: desc,
+            tipo: document.getElementById('lancTipo').value,
+            cat: document.getElementById('lancCat').value,
+            valor: valor,
+            data: document.getElementById('lancData').value,
+            metodo: document.getElementById('lancMetodo').value,
+            status: document.getElementById('lancStatus').value
+        };
+
+        if(editandoId.lancamento) {
+            let index = lancamentos.findIndex(i => i.id === editandoId.lancamento);
+            if(index !== -1) lancamentos[index] = item;
+            cancelarEdicao('lancamento');
+        } else {
+            lancamentos.push(item);
+        }
+        
+        // Limpar campos
+        document.getElementById('lancDesc').value = '';
+        document.getElementById('lancValor').value = '';
+        salvarERenderizar();
+    }
+
+    function editarLancamento(id) {
+        let item = lancamentos.find(i => i.id === id);
+        if(!item) return;
+        document.getElementById('lancDesc').value = item.desc;
+        document.getElementById('lancTipo').value = item.tipo;
+        document.getElementById('lancCat').value = item.cat;
+        document.getElementById('lancValor').value = item.valor;
+        document.getElementById('lancData').value = item.data;
+        document.getElementById('lancMetodo').value = item.metodo;
+        document.getElementById('lancStatus').value = item.status;
+        
+        editandoId.lancamento = id;
+        let btn = document.getElementById('btn-salvar-lanc');
+        btn.innerText = "✓ Atualizar Lançamento";
+        btn.style.background = "#f59e0b"; // Lógica de cores inspirada na Hamburgueria Gorillas
+        document.getElementById('btn-cancel-lanc').style.display = "block";
+    }
+
+    // --- FUNÇÕES DE DÍVIDAS ---
+    function addDivida() {
+        const nome = document.getElementById('divNome').value;
+        const vAtual = parseFloat(document.getElementById('divValorAtual').value) || 0;
+        
+        if(!nome || vAtual <= 0) return alert("Preencha o nome e o valor atual!");
+        
+        const item = {
+            id: editandoId.divida || Date.now(),
+            nome: nome,
+            tipo: document.getElementById('divTipo').value,
+            vOriginal: parseFloat(document.getElementById('divValorOriginal').value) || 0,
+            vAtual: vAtual
+        };
+
+        if(editandoId.divida) {
+            let index = dividas.findIndex(i => i.id === editandoId.divida);
+            if(index !== -1) dividas[index] = item;
+            cancelarEdicao('divida');
+        } else {
+            dividas.push(item);
+        }
+        
+        document.getElementById('divNome').value = '';
+        document.getElementById('divValorOriginal').value = '';
+        document.getElementById('divValorAtual').value = '';
+        salvarERenderizar();
+    }
+
+    function editarDivida(id) {
+        let item = dividas.find(i => i.id === id);
+        if(!item) return;
+        document.getElementById('divNome').value = item.nome;
+        document.getElementById('divTipo').value = item.tipo;
+        document.getElementById('divValorOriginal').value = item.vOriginal;
+        document.getElementById('divValorAtual').value = item.vAtual;
+        
+        editandoId.divida = id;
+        let btn = document.getElementById('btn-salvar-div');
+        btn.innerText = "✓ Atualizar Dívida";
+        btn.style.background = "#f59e0b";
+        document.getElementById('btn-cancel-div').style.display = "block";
+    }
+
+    // --- FUNÇÕES DE COMPRAS ---
+    function addCompra() {
+        const nome = document.getElementById('compraItem').value;
+        const valor = parseFloat(document.getElementById('compraValor').value) || 0; // Valor Opcional agora
+        
+        if(!nome) return alert("Preencha pelo menos o nome do item!");
+        
+        const item = {
+            id: editandoId.compra || Date.now(),
+            nome: nome,
+            valor: valor
+        };
+
+        if(editandoId.compra) {
+            let index = compras.findIndex(i => i.id === editandoId.compra);
+            if(index !== -1) compras[index] = item;
+            cancelarEdicao('compra');
+        } else {
+            compras.push(item);
+        }
+        
+        document.getElementById('compraItem').value = '';
+        document.getElementById('compraValor').value = '';
+        salvarERenderizar();
+    }
+
+    function editarCompra(id) {
+        let item = compras.find(i => i.id === id);
+        if(!item) return;
+        document.getElementById('compraItem').value = item.nome;
+        document.getElementById('compraValor').value = item.valor > 0 ? item.valor : '';
+        
+        editandoId.compra = id;
+        let btn = document.getElementById('btn-salvar-compra');
+        btn.innerText = "✓ Atualizar Compra";
+        btn.style.background = "#f59e0b";
+        document.getElementById('btn-cancel-compra').style.display = "block";
+    }
+
+    // --- CANCELAR EDIÇÃO GLOBAL ---
+    function cancelarEdicao(tipo) {
+        editandoId[tipo] = null;
+        if(tipo === 'lancamento') {
+            document.getElementById('lancDesc').value = ''; document.getElementById('lancValor').value = '';
+            let btn = document.getElementById('btn-salvar-lanc');
+            btn.innerText = "➕ Adicionar Lançamento"; btn.style.background = "var(--primary)";
+            document.getElementById('btn-cancel-lanc').style.display = "none";
+        }
+        if(tipo === 'divida') {
+            document.getElementById('divNome').value = ''; document.getElementById('divValorOriginal').value = ''; document.getElementById('divValorAtual').value = '';
+            let btn = document.getElementById('btn-salvar-div');
+            btn.innerText = "➕ Adicionar Dívida"; btn.style.background = "var(--primary)";
+            document.getElementById('btn-cancel-div').style.display = "none";
+        }
+        if(tipo === 'compra') {
+            document.getElementById('compraItem').value = ''; document.getElementById('compraValor').value = '';
+            let btn = document.getElementById('btn-salvar-compra');
+            btn.innerText = "➕ Adicionar à Lista"; btn.style.background = "var(--primary)";
+            document.getElementById('btn-cancel-compra').style.display = "none";
+        }
+    }
+
+    // --- AÇÕES GLOBAIS (Deletar e Clonar) ---
+    function deletar(tipo, id) {
+        if(confirm("Tem certeza que deseja excluir?")) {
+            if(tipo === 'lancamentos') lancamentos = lancamentos.filter(i => i.id !== id);
+            if(tipo === 'dividas') dividas = dividas.filter(i => i.id !== id);
+            if(tipo === 'compras') compras = compras.filter(i => i.id !== id);
+            salvarERenderizar();
+        }
+    }
+
+    function clonar(tipo, id) {
+        let lista = tipo === 'lancamentos' ? lancamentos : (tipo === 'dividas' ? dividas : compras);
+        let item = lista.find(i => i.id === id);
+        if(item) {
+            let clone = {...item, id: Date.now()}; 
+            lista.push(clone);
+            salvarERenderizar();
+        }
+    }
+
+    // --- METAS E POUPANÇA ---
+    function movimentarPoupanca(tipo) {
+        if(tipo === 'deposito') {
+            let val = parseFloat(document.getElementById('valorDeposito').value);
+            if(val > 0) metas.depositado += val;
+            document.getElementById('valorDeposito').value = '';
+        } else {
+            let val = parseFloat(document.getElementById('valorRetirada').value);
+            if(val > 0) metas.retirado += val;
+            document.getElementById('valorRetirada').value = '';
+        }
+        atualizarMetas();
+    }
+
+    function atualizarMetas() {
+        metas.valorMeta = parseFloat(document.getElementById('metaTotal').value) || 0;
+        localStorage.setItem('metas', JSON.stringify(metas));
+        
+        let saldo = metas.depositado - metas.retirado;
+        if(saldo < 0) saldo = 0;
+
+        document.getElementById('lblDepositado').innerText = formataMoeda(metas.depositado);
+        document.getElementById('lblRetirado').innerText = formataMoeda(metas.retirado);
+        document.getElementById('lblSaldoPoupanca').innerText = formataMoeda(saldo);
+
+        let porcentagem = 0;
+        if(metas.valorMeta > 0) {
+            porcentagem = (saldo / metas.valorMeta) * 100;
+            if(porcentagem > 100) porcentagem = 100;
+        }
+
+        document.getElementById('lblPorcentagemMeta').innerText = porcentagem.toFixed(1) + '%';
+        document.getElementById('barraMeta').style.width = porcentagem + '%';
+        
+        if(porcentagem > 0) document.getElementById('barraMeta').innerText = porcentagem.toFixed(0) + '%';
+        else document.getElementById('barraMeta').innerText = '';
+    }
+
+    // --- RENDERIZADORES ---
+    function salvarERenderizar() {
+        localStorage.setItem('lancamentos', JSON.stringify(lancamentos));
+        localStorage.setItem('dividas', JSON.stringify(dividas));
+        localStorage.setItem('compras', JSON.stringify(compras));
+        
+        renderLancamentos();
+        renderDividas();
+        renderCompras();
+        calcularBases();
+        atualizarMetas();
+        atualizarGrafico();
+    }
+
+    function renderLancamentos() {
+        const tbody = document.querySelector('#tabelaLancamentos tbody');
+        tbody.innerHTML = '';
+        lancamentos.forEach(i => {
+            const corTipo = i.tipo === 'Entrada' ? 'color: var(--success)' : 'color: var(--danger)';
+            let dataStr = i.data ? i.data.split('-').reverse().join('/') : 'Sem Data';
+            tbody.innerHTML += `
+                <tr>
+                    <td>${dataStr}</td>
+                    <td>${i.desc}</td><td>${i.cat}</td><td>${i.metodo}</td>
+                    <td>${i.status}</td><td style="${corTipo}; font-weight:bold;">${formataMoeda(i.valor)}</td>
+                    <td style="min-width: 180px;">
+                        <button class="btn-small btn-edit" onclick="editarLancamento(${i.id})">✏️</button>
+                        <button class="btn-small btn-clone" onclick="clonar('lancamentos', ${i.id})">Clonar</button>
+                        <button class="btn-small btn-del" onclick="deletar('lancamentos', ${i.id})">X</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function renderDividas() {
+        const tbody = document.querySelector('#tabelaDividas tbody');
+        tbody.innerHTML = '';
+        
+        // Bola de neve (menor p/ maior)
+        dividas.sort((a, b) => a.vAtual - b.vAtual);
+        let total = 0;
+
+        dividas.forEach(i => {
+            total += i.vAtual;
+            tbody.innerHTML += `
+                <tr>
+                    <td>${i.nome}</td><td>${i.tipo}</td>
+                    <td style="text-decoration: line-through; color: #888;">${formataMoeda(i.vOriginal)}</td>
+                    <td style="color: var(--danger); font-weight:bold;">${formataMoeda(i.vAtual)}</td>
+                    <td style="min-width: 180px;">
+                        <button class="btn-small btn-edit" onclick="editarDivida(${i.id})">✏️</button>
+                        <button class="btn-small btn-clone" onclick="clonar('dividas', ${i.id})">Clonar</button>
+                        <button class="btn-small btn-del" onclick="deletar('dividas', ${i.id})">X</button>
+                    </td>
+                </tr>
+            `;
+        });
+        document.getElementById('lblTotalDividas').innerText = `Total: ${formataMoeda(total)}`;
+    }
+
+    function renderCompras() {
+        const tbody = document.querySelector('#tabelaCompras tbody');
+        tbody.innerHTML = '';
+        let total = 0;
+        compras.forEach(i => {
+            total += i.valor;
+            let displayValor = i.valor > 0 ? formataMoeda(i.valor) : '<span style="color:#aaa;">À definir</span>';
+            tbody.innerHTML += `
+                <tr>
+                    <td>${i.nome}</td><td>${displayValor}</td>
+                    <td style="min-width: 180px;">
+                        <button class="btn-small btn-edit" onclick="editarCompra(${i.id})">✏️</button>
+                        <button class="btn-small btn-clone" onclick="clonar('compras', ${i.id})">Clonar</button>
+                        <button class="btn-small btn-del" onclick="deletar('compras', ${i.id})">X</button>
+                    </td>
+                </tr>
+            `;
+        });
+        document.getElementById('totalCompras').innerText = `Total: ${formataMoeda(total)}`;
+    }
+
+    // --- CÁLCULO DE BASES ---
+    function calcularBases() {
+        const renda = parseFloat(document.getElementById('baseRenda').value) || 0;
+        
+        document.getElementById('b1Contas').innerText = formataMoeda(renda * 0.50);
+        document.getElementById('b1Invest').innerText = formataMoeda(renda * 0.30);
+        document.getElementById('b1Mim').innerText = formataMoeda(renda * 0.20);
+
+        let totalB2 = 0;
+        const addB2 = (idElem, pct, idChk) => {
+            const v = document.getElementById(idChk).checked ? (renda * pct) : 0;
+            document.getElementById(idElem).innerText = formataMoeda(v);
+            totalB2 += v;
+        };
+
+        addB2('b2Mim', 0.05, 'chkMim');
+        addB2('b2Doar', 0.10, 'chkDoar');
+        addB2('b2Contas', 0.60, 'chkContas');
+        addB2('b2Invest', 0.10, 'chkInvest');
+        addB2('b2Guardar', 0.10, 'chkGuardar');
+        addB2('b2Livre', 0.05, 'chkLivre');
+        
+        document.getElementById('b2TotalDist').innerText = formataMoeda(totalB2);
+    }
+
+    // --- GRÁFICO ---
+    function atualizarGrafico() {
+        const totalEntradas = lancamentos.filter(i => i.tipo === 'Entrada').reduce((acc, i) => acc + i.valor, 0);
+        const totalSaidas = lancamentos.filter(i => i.tipo === 'Saida').reduce((acc, i) => acc + i.valor, 0);
+        const totalDividas = dividas.reduce((acc, i) => acc + i.vAtual, 0);
+
+        const ctx = document.getElementById('financeChart').getContext('2d');
+        if(chartInstance) chartInstance.destroy();
+        
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Entradas', 'Saídas', 'Total Dívidas a Pagar'],
+                datasets: [{
+                    label: 'Resumo (R$)',
+                    data: [totalEntradas, totalSaidas, totalDividas],
+                    backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+</script>
+
+</body>
+</html>
