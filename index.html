@@ -25,13 +25,18 @@
             --warning: #f59e0b;
             --border: #27272a;
         }
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg-dark); color: var(--text-light); margin: 0; padding: 15px; }
+        
+        /* 🛡️ TRAVA ABSOLUTA DE TELA (CSS Grid Blowout Fix) */
+        html { box-sizing: border-box; width: 100%; overflow-x: hidden; }
+        *, *:before, *:after { box-sizing: inherit; min-width: 0; }
+        body { background-color: var(--bg-dark); color: var(--text-light); margin: 0; padding: 15px; width: 100%; overflow-x: hidden; }
         
         header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; position: relative;}
-        h1 { margin: 0; color: var(--primary); outline: none; padding: 5px; border-radius: 5px; transition: 0.3s; font-size: 24px; line-height: 1.2; }
+        h1 { margin: 0; color: var(--primary); outline: none; padding: 5px; border-radius: 5px; transition: 0.3s; font-size: 24px; line-height: 1.2; word-wrap: break-word;}
         h1:hover, h1:focus { background: #1a1a1a; border: 1px dashed var(--primary); }
-        h2 { border-bottom: 1px solid var(--border); padding-bottom: 5px; color: var(--primary); display: flex; justify-content: space-between; align-items: center; font-size: 18px; flex-wrap: wrap; gap: 10px;}
+        h2 { border-bottom: 1px solid var(--border); padding-bottom: 5px; color: var(--primary); font-size: 18px; margin-top: 0; }
+        
+        .section-title { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         
         /* Botão Status da Nuvem */
         .status-nuvem { position: absolute; right: 10px; top: 10px; font-size: 12px; color: var(--success); font-weight: bold; cursor: pointer; background: #18181b; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.5); z-index: 10; transition: 0.2s; }
@@ -39,10 +44,11 @@
         
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 9999; color: var(--primary); font-size: 20px; font-weight: bold;}
 
-        .container { max-width: 1200px; margin: 0 auto; display: grid; gap: 20px; grid-template-columns: 1fr; }
-        @media (min-width: 992px) { .container { grid-template-columns: 1fr 1fr; } }
+        /* Grid ajustado com minmax para não vazar a tela */
+        .container { width: 100%; max-width: 1200px; margin: 0 auto; display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); }
+        @media (min-width: 992px) { .container { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
         
-        .card { background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(168, 85, 247, 0.05); }
+        .card { background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(168, 85, 247, 0.05); width: 100%; overflow-wrap: break-word; }
         .full-width { grid-column: 1 / -1; }
         
         input, select, button { width: 100%; padding: 12px; margin: 5px 0 15px; border-radius: 6px; border: 1px solid var(--border); background: #18181b; color: white; font-size: 16px; }
@@ -57,15 +63,15 @@
         .btn-del { background: var(--danger); color: white; }
         .btn-cancel { background: var(--danger); color: white; display: none; }
         
-        .table-responsive { width: 100%; overflow-x: auto; margin-top: 10px; border-radius: 6px; border: 1px solid var(--border); }
+        /* Tabelas agora respeitam o tamanho do pai */
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border-radius: 6px; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: 14px; }
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
         th { color: var(--primary); background: #18181b; white-space: nowrap; }
         td { background: var(--bg-card); }
         
         .flex-row { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
-        .flex-row > * { flex: 1; min-width: 100%; }
-        @media (min-width: 600px) { .flex-row > * { min-width: 150px; } }
+        .flex-row > * { flex: 1; min-width: 150px; }
         
         .total-box { font-size: 1.2em; font-weight: bold; text-align: right; color: var(--success); padding-top: 10px; }
         .checkbox-group { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 15px; }
@@ -73,14 +79,16 @@
         .progress-bar { background: #27272a; width: 100%; height: 24px; border-radius: 12px; overflow: hidden; margin-top: 10px; }
         .progress-fill { background: var(--primary); width: 0%; height: 100%; transition: width 0.5s; text-align: center; font-size: 13px; line-height: 24px; color: #fff; font-weight: bold; }
 
-        .dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .dash-card { background: #18181b; padding: 15px; border-radius: 8px; border-left: 4px solid; }
+        .dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .dash-card { background: #18181b; padding: 15px; border-radius: 8px; border-left: 4px solid; word-wrap: break-word; }
         .dash-card h3 { margin: 0 0 5px 0; font-size: 14px; color: #a1a1aa; }
         .dash-card p { margin: 0; font-size: 24px; font-weight: bold; }
 
         .meta-card { background: #18181b; padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; }
-        .toolbar { max-width: 1200px; margin: 0 auto 20px; display: flex; gap: 8px; flex-wrap: wrap; }
-        .toolbar button, .toolbar label { width: auto; flex: 1; min-width: 145px; margin: 0; text-align: center; }
+        .btn-group-metas { display: flex; align-items: flex-end; gap: 10px; }
+        
+        .toolbar { max-width: 1200px; margin: 0 auto 20px; display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
+        .toolbar button, .toolbar label { width: auto; flex: 1; min-width: 140px; margin: 0; text-align: center; }
         .toolbar label { background: #18181b; border: 1px solid var(--border); border-radius: 6px; padding: 13px; cursor: pointer; font-weight: bold; }
         .toolbar input[type="file"] { display: none; }
         .subtle { color: #a1a1aa; font-size: 13px; }
@@ -93,18 +101,54 @@
         .empty-state { text-align:center; padding:18px; color:#71717a; }
         .danger-outline { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
         .info-outline { background: transparent; border: 1px solid var(--info); color: #93c5fd; }
-        .inline-price { width: 125px; min-width: 105px; margin: 0; padding: 9px 10px; border-color: #52525b; background: #09090b; }
+        .inline-price { width: 125px; margin: 0; padding: 9px 10px; border-color: #52525b; background: #09090b; }
         .inline-price:focus { outline: 2px solid var(--primary); border-color: var(--primary); }
-        @media (max-width: 599px) {
-            body { padding: 8px; }
-            .card { padding: 14px; }
-            h1 { font-size: 20px; }
-            h2 { font-size: 16px; }
-            .dash-card p { font-size: 20px; }
-            .toolbar button, .toolbar label { min-width: calc(50% - 8px); }
+        
+        .fechamento-mercado { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; background: #18181b; padding: 15px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: wrap; gap: 15px; }
+        .fechamento-mercado-btns { display: flex; gap: 10px; flex-wrap: wrap; width: 100%; }
+        
+        /* 📱 RESPONSIVIDADE EXTREMA PARA CELULAR (Foco Anti-Vazamento) */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { gap: 12px; padding-bottom: 20px; }
+            .card { padding: 15px; }
+            h1 { font-size: 20px; line-height: 1.2; }
+            
+            /* Títulos e inputs acoplados */
+            .section-title { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .section-title input[type="month"] { width: 100% !important; margin-top: 5px; }
+            
+            /* Inputs dividindo linha corretamente */
+            .flex-row { gap: 8px; }
+            .flex-row > * { min-width: calc(50% - 8px) !important; flex: 1 1 calc(50% - 8px); margin: 0 !important; }
+            
+            /* Elementos que devem ocupar a linha inteira no celular */
+            #lancDesc, #divNome, #compraItem, .btn-group-metas, .fechamento-mercado-btns, .btn-group-metas button { 
+                min-width: 100% !important; width: 100% !important; 
+            }
+            .btn-group-metas { flex-direction: column; gap: 8px; }
+            
+            .fechamento-mercado { flex-direction: column; text-align: center; }
+            .fechamento-mercado-btns { flex-direction: column; gap: 8px; }
+            .fechamento-mercado-btns button { width: 100% !important; margin: 0 !important; }
+            #totalCompras { text-align: center !important; width: 100%; }
+
+            /* Menus e Dashboards */
+            .toolbar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+            .toolbar button, .toolbar label { width: 100%; min-width: 0 !important; margin: 0; padding: 12px 10px; font-size: 13px; }
+            
+            .dash-cards { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .dash-card { padding: 10px; }
+            .dash-card h3 { font-size: 12px; }
+            .dash-card p { font-size: 18px; }
+            
+            .status-nuvem { top: 5px; right: 5px; font-size: 10px; padding: 4px 8px; }
+            .inline-price { width: 100%; min-width: 0; padding: 8px; font-size: 14px; }
+            th, td { padding: 8px 6px; font-size: 13px; }
         }
+
         @media print {
-            body { background:#fff; color:#111; }
+            body { background:#fff; color:#111; padding: 0; }
             .toolbar, button, input, select, .checkbox-group { display:none !important; }
             .card, .meta-card, .budget-row, .dash-card { background:#fff; color:#111; border-color:#bbb; box-shadow:none; break-inside:avoid; }
             td, th { background:#fff; color:#111; }
@@ -133,8 +177,8 @@
     
     <!-- DASHBOARD EXECUTIVO -->
     <div class="card full-width">
-        <h2 style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-            Dashboard Executivo (Resumo Geral) 
+        <h2 class="section-title">
+            Dashboard Executivo (Resumo) 
             <input type="month" id="mesReferencia" class="sync-mes" onchange="sincronizarMes(this.value)" style="width:auto; margin:0; padding:8px; font-size:14px;">
         </h2>
         <div class="dash-cards">
@@ -159,7 +203,7 @@
                 <p id="dash-previsto" style="color: var(--info);">R$ 0,00</p>
             </div>
         </div>
-        <div style="height: 250px; position: relative;">
+        <div style="height: 250px; position: relative; width: 100%; max-width: 100%;">
             <canvas id="financeChart"></canvas>
         </div>
     </div>
@@ -167,7 +211,7 @@
     <!-- ORÇAMENTO POR CATEGORIA -->
     <div class="card full-width">
         <h2>Orçamento Mensal por Categoria <span id="lblOrcamentoStatus" class="subtle"></span></h2>
-        <p class="subtle">Defina o máximo que deseja gastar em cada categoria. O sistema compara automaticamente com as saídas do mês selecionado.</p>
+        <p class="subtle">Defina o máximo que deseja gastar em cada categoria. O sistema compara com as saídas do mês.</p>
         <div class="flex-row">
             <select id="orcCategoria">
                 <option value="Alimentacao">Alimentação</option><option value="Moradia">Moradia</option>
@@ -183,14 +227,17 @@
 
     <!-- POUPANÇA E MULTI-METAS -->
     <div class="card full-width" style="border-left: 4px solid var(--primary);">
-        <h2>Metas e Diversificação <span id="lblTotalMetas" style="color: var(--primary); font-size: 16px;">Total Guardado: R$ 0,00</span></h2>
+        <h2 class="section-title">
+            Metas e Diversificação 
+            <span id="lblTotalMetas" style="color: var(--primary); font-size: 16px;">Total Guardado: R$ 0,00</span>
+        </h2>
         
         <div class="flex-row" style="background: #18181b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
             <div><label style="font-size: 13px; color: #a1a1aa;">Nome da Meta</label><input type="text" id="novaMetaNome" placeholder="Ex: Reserva Viagem"></div>
             <div><label style="font-size: 13px; color: #a1a1aa;">Valor Alvo (R$)</label><input type="number" id="novaMetaValor" placeholder="Ex: 5000"></div>
-            <div style="display:flex; align-items:flex-end;">
-                <button id="btn-salvar-meta" onclick="addMeta()" style="margin:0;">➕ Criar Meta</button>
-                <button id="btn-cancel-meta" class="btn-cancel" style="margin:0; margin-left: 10px;" onclick="cancelarEdicaoMeta()">Cancelar</button>
+            <div class="btn-group-metas">
+                <button id="btn-salvar-meta" onclick="addMeta()">➕ Criar Meta</button>
+                <button id="btn-cancel-meta" class="btn-cancel" onclick="cancelarEdicaoMeta()">Cancelar</button>
             </div>
         </div>
 
@@ -199,8 +246,8 @@
 
     <!-- CONTROLE MENSAL -->
     <div class="card full-width">
-        <h2 style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-            Lançamentos / Controle Mensal
+        <h2 class="section-title">
+            Lançamentos Mensais
             <input type="month" id="mesLancamentos" class="sync-mes" onchange="sincronizarMes(this.value)" style="width:auto; margin:0; padding:8px; font-size:14px;">
         </h2>
         <div class="flex-row">
@@ -210,37 +257,28 @@
                 <option value="Saida">Saída (Despesa)</option>
             </select>
             <select id="lancCat">
-                <option value="Salario">Salário</option>
-                <option value="Renda Extra">Renda Extra</option>
-                <option value="Alimentacao">Alimentação</option>
-                <option value="Moradia">Moradia</option>
-                <option value="Transporte">Transporte</option>
-                <option value="Saude">Saúde</option>
-                <option value="Educacao">Educação</option>
-                <option value="Lazer">Lazer</option>
-                <option value="Dividas">Dívidas</option>
-                <option value="Outros">Outros</option>
+                <option value="Salario">Salário</option><option value="Renda Extra">Renda Extra</option>
+                <option value="Alimentacao">Alimentação</option><option value="Moradia">Moradia</option>
+                <option value="Transporte">Transporte</option><option value="Saude">Saúde</option>
+                <option value="Educacao">Educação</option><option value="Lazer">Lazer</option>
+                <option value="Dividas">Dívidas</option><option value="Outros">Outros</option>
             </select>
         </div>
         <div class="flex-row">
             <input type="number" id="lancValor" placeholder="Valor (R$)">
             <input type="date" id="lancData">
             <select id="lancMetodo">
-                <option value="PIX">PIX</option>
-                <option value="Credito">Crédito</option>
-                <option value="Debito">Débito</option>
-                <option value="Dinheiro">Dinheiro</option>
-                <option value="Alelo">Alelo/Benefício</option>
-                <option value="Outros">Outros</option>
+                <option value="PIX">PIX</option><option value="Credito">Crédito</option>
+                <option value="Debito">Débito</option><option value="Dinheiro">Dinheiro</option>
+                <option value="Alelo">Alelo/Benefício</option><option value="Outros">Outros</option>
             </select>
             <select id="lancStatus">
-                <option value="Pago">Pago</option>
-                <option value="Pendente">Pendente</option>
+                <option value="Pago">Pago</option><option value="Pendente">Pendente</option>
             </select>
         </div>
-        <div class="checkbox-group">
+        <div class="checkbox-group" style="margin-top: 5px;">
             <input type="checkbox" id="lancRecorrente">
-            <span>Repetir este lançamento automaticamente todos os meses</span>
+            <span>Repetir este lançamento todos os meses</span>
         </div>
         <div class="flex-row" style="margin-top: 10px;">
             <button id="btn-salvar-lanc" onclick="addLancamento()">➕ Adicionar Lançamento</button>
@@ -265,20 +303,20 @@
     <!-- VENCIMENTOS -->
     <div class="card full-width">
         <h2>Calendário de Vencimentos <span id="lblVencimentos" class="subtle"></span></h2>
-        <p class="subtle">Contas pendentes são organizadas pela data. Use o botão “Pagar” para atualizar o status sem editar o lançamento.</p>
+        <p class="subtle">Contas pendentes são organizadas pela data do mês atual.</p>
         <div id="listaVencimentos"></div>
     </div>
 
     <!-- DÍVIDAS E CONTAS -->
     <div class="card full-width">
-        <h2 style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+        <h2 class="section-title">
             Estratégia Limpa Nome
             <div style="display:flex; gap:10px; align-items:center;">
                 <input type="month" id="mesDividas" class="sync-mes" onchange="sincronizarMes(this.value)" style="width:auto; margin:0; padding:8px; font-size:14px;">
-                <span id="lblTotalDividas" style="color: var(--danger); font-size: 16px;">Total Mês: R$ 0,00</span>
+                <span id="lblTotalDividas" style="color: var(--danger); font-size: 16px; white-space:nowrap;">Mês: R$ 0,00</span>
             </div>
         </h2>
-        <p style="font-size: 13px; color: #a1a1aa;">As contas são filtradas com base no mês selecionado. Ao pagar uma parcela, o valor é lançado nas suas Saídas Mensais. Dívidas quitadas em meses anteriores sumirão sozinhas do mês atual.</p>
+        <p style="font-size: 13px; color: #a1a1aa;">Ao pagar uma parcela, o valor vai automaticamente para os Lançamentos Mensais.</p>
         
         <div class="flex-row">
             <input type="text" id="divNome" placeholder="Nome da Conta/Credor">
@@ -293,14 +331,14 @@
         </div>
         <div class="flex-row">
             <input type="number" id="divParcelas" min="1" placeholder="Total de parcelas (ex.: 10)">
-            <input type="number" id="divPagas" min="0" placeholder="Parcelas já pagas ANTES de usar o app">
+            <input type="number" id="divPagas" min="0" placeholder="Parcelas pagas ANTES do app">
             <div>
                 <label class="subtle" style="margin-bottom: 2px;">Data de Adição</label>
-                <input type="date" id="divDataAdicao" title="Data que a conta foi adicionada no sistema" style="margin-top: 0;">
+                <input type="date" id="divDataAdicao" title="Data que a conta foi adicionada no sistema">
             </div>
             <div>
                 <label class="subtle" style="margin-bottom: 2px;">Próx. Vencimento</label>
-                <input type="date" id="divVencimento" title="Próximo vencimento" style="margin-top: 0;">
+                <input type="date" id="divVencimento" title="Próximo vencimento">
             </div>
         </div>
         <div class="flex-row" style="margin-top: 10px;">
@@ -316,7 +354,7 @@
                 <tbody></tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="6" style="text-align: right; font-weight: bold; font-size: 15px;">TOTAL DEVEDOR DESTE MÊS:</td>
+                        <td colspan="6" style="text-align: right; font-weight: bold; font-size: 15px;">TOTAL DEVEDOR (MÊS SELECIONADO):</td>
                         <td id="tfooterSaldoDevedor" style="color: var(--danger); font-weight: bold; font-size: 16px;">R$ 0,00</td>
                         <td colspan="2"></td>
                     </tr>
@@ -348,7 +386,7 @@
     <!-- LISTA DE SUPERMERCADO -->
     <div class="card">
         <h2>Lista de Supermercado</h2>
-        <p class="subtle">Você pode alterar as quantidades e os preços direto na lista (salva automático). Ao terminar a compra, clique no botão no final da tela para lançar o valor total nas suas despesas do mês.</p>
+        <p class="subtle">Preencha os valores e clique em Lançar Total no final para enviar ao controle de despesas.</p>
         <div class="flex-row">
             <input type="text" id="compraItem" placeholder="Item (Ex: Arroz)">
             <input type="number" id="compraQtd" min="0.01" step="0.01" value="1" placeholder="Quantidade" oninput="calcularSubtotalCompra()">
@@ -359,7 +397,7 @@
         </div>
         <div class="flex-row">
             <input type="number" id="compraValorUnit" min="0" step="0.01" placeholder="Valor de cada unidade (R$)" oninput="calcularSubtotalCompra()">
-            <div class="meta-card" style="margin:5px 0 15px; display:flex; justify-content:space-between; align-items:center; min-height:49px;">
+            <div class="meta-card" style="margin:5px 0 15px; display:flex; justify-content:space-between; align-items:center; min-height:49px; width:100%;">
                 <span class="subtle">Total deste item</span><strong id="compraSubtotal" style="color:var(--success); font-size:18px;">R$ 0,00</strong>
             </div>
         </div>
@@ -375,12 +413,12 @@
             </table>
         </div>
         
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; background: #18181b; padding: 15px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: wrap; gap: 15px;">
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn" style="background: var(--success); width: auto; margin: 0; padding: 12px 20px;" onclick="lancarTotalMercado()">🛒 Lançar Total no Mês</button>
-                <button class="btn-small btn-del" style="margin: 0; padding: 12px 15px;" onclick="limparListaMercado()">🧹 Limpar Lista</button>
+        <div class="fechamento-mercado">
+            <div class="fechamento-mercado-btns">
+                <button class="btn" style="background: var(--success); padding: 12px 20px;" onclick="lancarTotalMercado()">🛒 Lançar Total no Mês</button>
+                <button class="btn-small btn-del" style="padding: 12px 15px;" onclick="limparListaMercado()">🧹 Limpar Lista</button>
             </div>
-            <div style="text-align: right;" id="totalCompras"></div>
+            <div id="totalCompras"></div>
         </div>
     </div>
 
@@ -469,7 +507,6 @@
                 if(dados.titulo) document.getElementById('tituloApp').innerText = dados.titulo;
                 if(dados.baseRenda) document.getElementById('baseRenda').value = dados.baseRenda;
                 
-                // Puxa o mês do banco ou do navegador
                 let mesSalvo = dados.mesReferencia || localStorage.getItem('mesReferencia') || mesAtualISO();
                 
                 if(dados.simTransporte) {
@@ -1110,6 +1147,7 @@
         salvarNuvemSilencioso();
     }
 
+    // --- TRUQUE NINJA: Limpeza de dados invisíveis antes de enviar pro Google ---
     function salvarNuvemSilencioso() {
         let pacoteDados = {
             lancamentos: lancamentos,
@@ -1204,7 +1242,7 @@
         });
         
         document.getElementById('tfooterSaldoDevedor').innerText = formataMoeda(totalDevedorMes);
-        document.getElementById('lblTotalDividas').innerText = `Total Mês: ${formataMoeda(totalDevedorMes)}`;
+        document.getElementById('lblTotalDividas').innerText = `Mês: ${formataMoeda(totalDevedorMes)}`;
     }
 
     function saldoDivida(i) {
