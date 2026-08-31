@@ -6,7 +6,7 @@
     <title>Vitória - Gestão Financeira Pessoal</title>
     
     <!-- Bibliotecas e Gráficos -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     
     <!-- SDKs do Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -133,7 +133,10 @@
     
     <!-- DASHBOARD EXECUTIVO -->
     <div class="card full-width">
-        <h2>Dashboard Executivo (Resumo Geral) <input type="month" id="mesReferencia" onchange="salvarMesReferencia()" style="width:auto; margin:0;"></h2>
+        <h2 style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+            Dashboard Executivo (Resumo Geral) 
+            <input type="month" id="mesReferencia" class="sync-mes" onchange="sincronizarMes(this.value)" style="width:auto; margin:0; padding:8px; font-size:14px;">
+        </h2>
         <div class="dash-cards">
             <div class="dash-card" style="border-color: var(--success);">
                 <h3>Saldo Mensal (Entradas - Saídas)</h3>
@@ -183,7 +186,7 @@
         <h2>Metas e Diversificação <span id="lblTotalMetas" style="color: var(--primary); font-size: 16px;">Total Guardado: R$ 0,00</span></h2>
         
         <div class="flex-row" style="background: #18181b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            <div><label style="font-size: 13px; color: #a1a1aa;">Nome da Meta</label><input type="text" id="novaMetaNome" placeholder="Ex: Reserva Decants"></div>
+            <div><label style="font-size: 13px; color: #a1a1aa;">Nome da Meta</label><input type="text" id="novaMetaNome" placeholder="Ex: Reserva Viagem"></div>
             <div><label style="font-size: 13px; color: #a1a1aa;">Valor Alvo (R$)</label><input type="number" id="novaMetaValor" placeholder="Ex: 5000"></div>
             <div style="display:flex; align-items:flex-end;">
                 <button id="btn-salvar-meta" onclick="addMeta()" style="margin:0;">➕ Criar Meta</button>
@@ -196,7 +199,10 @@
 
     <!-- CONTROLE MENSAL -->
     <div class="card full-width">
-        <h2>Lançamentos / Controle Mensal</h2>
+        <h2 style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+            Lançamentos / Controle Mensal
+            <input type="month" id="mesLancamentos" class="sync-mes" onchange="sincronizarMes(this.value)" style="width:auto; margin:0; padding:8px; font-size:14px;">
+        </h2>
         <div class="flex-row">
             <input type="text" id="lancDesc" placeholder="Descrição (Ex: Salário, Conta)">
             <select id="lancTipo">
@@ -265,11 +271,15 @@
 
     <!-- DÍVIDAS E CONTAS -->
     <div class="card full-width">
-        <h2>
+        <h2 style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
             Estratégia Limpa Nome
-            <span id="lblTotalDividas" style="color: var(--danger); font-size: 16px;">Total: R$ 0,00</span>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <input type="month" id="mesDividas" class="sync-mes" onchange="sincronizarMes(this.value)" style="width:auto; margin:0; padding:8px; font-size:14px;">
+                <span id="lblTotalDividas" style="color: var(--danger); font-size: 16px;">Total Mês: R$ 0,00</span>
+            </div>
         </h2>
-        <p style="font-size: 13px; color: #a1a1aa;">Organização automática Método Snowball (Menor p/ Maior).</p>
+        <p style="font-size: 13px; color: #a1a1aa;">As contas são filtradas com base no mês selecionado. Ao pagar uma parcela, o valor é lançado nas suas Saídas Mensais. Dívidas quitadas em meses anteriores sumirão sozinhas do mês atual.</p>
+        
         <div class="flex-row">
             <input type="text" id="divNome" placeholder="Nome da Conta/Credor">
             <select id="divTipo">
@@ -283,8 +293,15 @@
         </div>
         <div class="flex-row">
             <input type="number" id="divParcelas" min="1" placeholder="Total de parcelas (ex.: 10)">
-            <input type="number" id="divPagas" min="0" placeholder="Parcelas já pagas (ex.: 2)">
-            <input type="date" id="divVencimento" title="Próximo vencimento">
+            <input type="number" id="divPagas" min="0" placeholder="Parcelas já pagas ANTES de usar o app">
+            <div>
+                <label class="subtle" style="margin-bottom: 2px;">Data de Adição</label>
+                <input type="date" id="divDataAdicao" title="Data que a conta foi adicionada no sistema" style="margin-top: 0;">
+            </div>
+            <div>
+                <label class="subtle" style="margin-bottom: 2px;">Próx. Vencimento</label>
+                <input type="date" id="divVencimento" title="Próximo vencimento" style="margin-top: 0;">
+            </div>
         </div>
         <div class="flex-row" style="margin-top: 10px;">
             <button id="btn-salvar-div" onclick="addDivida()">➕ Adicionar Dívida</button>
@@ -294,9 +311,16 @@
         <div class="table-responsive">
             <table id="tabelaDividas">
                 <thead>
-                    <tr><th>Conta</th><th>Tipo</th><th>V. Original</th><th>Parcela</th><th>Progresso</th><th>Saldo Devedor</th><th>Próx. Venc.</th><th>Ações</th></tr>
+                    <tr><th>Adicionada</th><th>Conta</th><th>Tipo</th><th>V. Original</th><th>Valor Parcela</th><th>Progresso</th><th>Saldo Devedor</th><th>Próx. Venc.</th><th>Ações</th></tr>
                 </thead>
                 <tbody></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="6" style="text-align: right; font-weight: bold; font-size: 15px;">TOTAL DEVEDOR DESTE MÊS:</td>
+                        <td id="tfooterSaldoDevedor" style="color: var(--danger); font-weight: bold; font-size: 16px;">R$ 0,00</td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     </div>
@@ -324,7 +348,7 @@
     <!-- LISTA DE SUPERMERCADO -->
     <div class="card">
         <h2>Lista de Supermercado</h2>
-        <p class="subtle">O valor é opcional. Você pode adicionar primeiro os itens e preencher ou alterar os preços diretamente na lista; os totais são atualizados automaticamente e sincronizados em tempo real.</p>
+        <p class="subtle">Você pode alterar as quantidades e os preços direto na lista (salva automático). Ao terminar a compra, clique no botão no final da tela para lançar o valor total nas suas despesas do mês.</p>
         <div class="flex-row">
             <input type="text" id="compraItem" placeholder="Item (Ex: Arroz)">
             <input type="number" id="compraQtd" min="0.01" step="0.01" value="1" placeholder="Quantidade" oninput="calcularSubtotalCompra()">
@@ -350,7 +374,14 @@
                 <tbody></tbody>
             </table>
         </div>
-        <div class="total-box" id="totalCompras">Total do Supermercado: R$ 0,00</div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; background: #18181b; padding: 15px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: wrap; gap: 15px;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn" style="background: var(--success); width: auto; margin: 0; padding: 12px 20px;" onclick="lancarTotalMercado()">🛒 Lançar Total no Mês</button>
+                <button class="btn-small btn-del" style="margin: 0; padding: 12px 15px;" onclick="limparListaMercado()">🧹 Limpar Lista</button>
+            </div>
+            <div style="text-align: right;" id="totalCompras"></div>
+        </div>
     </div>
 
     <!-- BASES FINANCEIRAS -->
@@ -420,6 +451,8 @@
     
     // --- LÓGICA DE CARREGAMENTO (NUVEM COM FALLBACK LOCAL) ---
     window.onload = () => {
+        document.getElementById('divDataAdicao').value = hojeISO();
+        
         documentoGeral.get().then((doc) => {
             if (doc.exists) {
                 const dados = doc.data();
@@ -429,9 +462,15 @@
                 listaMetas = dados.listaMetas || [];
                 orcamentos = dados.orcamentos || {};
                 
+                dividas.forEach(d => {
+                    if(d.pagasIniciais === undefined) d.pagasIniciais = d.pagas || 0;
+                });
+                
                 if(dados.titulo) document.getElementById('tituloApp').innerText = dados.titulo;
                 if(dados.baseRenda) document.getElementById('baseRenda').value = dados.baseRenda;
-                if(dados.mesReferencia) document.getElementById('mesReferencia').value = dados.mesReferencia;
+                
+                // Puxa o mês do banco ou do navegador
+                let mesSalvo = dados.mesReferencia || localStorage.getItem('mesReferencia') || mesAtualISO();
                 
                 if(dados.simTransporte) {
                     localStorage.setItem('simTransporte', JSON.stringify(dados.simTransporte));
@@ -451,20 +490,29 @@
                 }
                 
                 localStorage.setItem('vitoria_backup', JSON.stringify(dados));
+                posLoad("Conectado ✅", "var(--success)", mesSalvo);
+            } else {
+                posLoad("Conectado ✅", "var(--success)", mesAtualISO());
             }
-            posLoad("Conectado ✅", "var(--success)");
         }).catch((error) => {
             console.error("Erro Firebase, puxando backup local:", error);
             let backup = JSON.parse(localStorage.getItem('vitoria_backup') || '{}');
+            let mesBackup = mesAtualISO();
+            
             if(backup.lancamentos) {
                 lancamentos = backup.lancamentos || [];
                 dividas = backup.dividas || [];
                 compras = backup.compras || [];
                 listaMetas = backup.listaMetas || [];
                 orcamentos = backup.orcamentos || {};
+                
+                dividas.forEach(d => {
+                    if(d.pagasIniciais === undefined) d.pagasIniciais = d.pagas || 0;
+                });
+                
                 if(backup.titulo) document.getElementById('tituloApp').innerText = backup.titulo;
                 if(backup.baseRenda) document.getElementById('baseRenda').value = backup.baseRenda;
-                if(backup.mesReferencia) document.getElementById('mesReferencia').value = backup.mesReferencia;
+                mesBackup = backup.mesReferencia || localStorage.getItem('mesReferencia') || mesAtualISO();
                 
                 if(backup.configGerais) {
                     configGerais = backup.configGerais;
@@ -476,11 +524,11 @@
                     document.getElementById('chkLivre').checked = configGerais.chkLivre ?? true;
                 }
             }
-            posLoad("Modo Offline ⚠️", "var(--warning)");
+            posLoad("Modo Offline ⚠️", "var(--warning)", mesBackup);
         });
     };
 
-    function posLoad(statusText, statusColor) {
+    function posLoad(statusText, statusColor, mesInicial) {
         document.getElementById('loader').style.display = 'none';
         let el = document.getElementById('statusNuvem');
         if(el) {
@@ -488,9 +536,8 @@
             el.style.color = statusColor;
         }
         
-        if (!document.getElementById('mesReferencia').value) {
-            document.getElementById('mesReferencia').value = mesAtualISO();
-        }
+        // Sincroniza todos os botões de mês de uma vez
+        document.querySelectorAll('.sync-mes').forEach(input => input.value = mesInicial);
         document.getElementById('lancData').value = hojeISO();
         
         const simSalvo = JSON.parse(localStorage.getItem('simTransporte') || '{}');
@@ -498,6 +545,16 @@
             if(simSalvo[id] != null && !document.getElementById(id).value) document.getElementById(id).value = simSalvo[id]; 
         });
 
+        gerarRecorrentesDoMes();
+        salvarERenderizar();
+    }
+
+    // --- NOVA FUNÇÃO: SINCRONIZAR TODOS OS CALENDÁRIOS ---
+    function sincronizarMes(valorSelecionado) {
+        document.querySelectorAll('.sync-mes').forEach(input => {
+            input.value = valorSelecionado;
+        });
+        localStorage.setItem('mesReferencia', valorSelecionado);
         gerarRecorrentesDoMes();
         salvarERenderizar();
     }
@@ -517,9 +574,14 @@
                 listaMetas = dados.listaMetas || [];
                 orcamentos = dados.orcamentos || {};
                 
+                dividas.forEach(d => {
+                    if(d.pagasIniciais === undefined) d.pagasIniciais = d.pagas || 0;
+                });
+                
                 if(dados.titulo) document.getElementById('tituloApp').innerText = dados.titulo;
                 if(dados.baseRenda) document.getElementById('baseRenda').value = dados.baseRenda;
-                if(dados.mesReferencia) document.getElementById('mesReferencia').value = dados.mesReferencia;
+                
+                let mesSalvo = dados.mesReferencia || localStorage.getItem('mesReferencia') || mesAtualISO();
                 
                 if(dados.simTransporte) {
                     localStorage.setItem('simTransporte', JSON.stringify(dados.simTransporte));
@@ -539,7 +601,7 @@
                 }
                 
                 localStorage.setItem('vitoria_backup', JSON.stringify(dados));
-                posLoad("Conectado ✅", "var(--success)");
+                posLoad("Conectado ✅", "var(--success)", mesSalvo);
             } else {
                 el.innerText = "Conectado ✅";
                 el.style.color = "var(--success)";
@@ -556,7 +618,6 @@
 
     function salvarTitulo() { salvarERenderizar(); }
     function salvarRendaBase() { salvarERenderizar(); }
-    function salvarMesReferencia() { gerarRecorrentesDoMes(); salvarERenderizar(); }
 
     function gerarRecorrentesDoMes() {
         const mes = document.getElementById('mesReferencia').value || mesAtualISO();
@@ -632,7 +693,8 @@
             vOriginal: parseFloat(document.getElementById('divValorOriginal').value) || 0,
             vAtual: vAtual,
             parcelas: Math.max(1, parseInt(document.getElementById('divParcelas').value) || 1),
-            pagas: Math.max(0, parseInt(document.getElementById('divPagas').value) || 0),
+            pagasIniciais: Math.max(0, parseInt(document.getElementById('divPagas').value) || 0),
+            dataAdicao: document.getElementById('divDataAdicao').value || hojeISO(),
             vencimento: document.getElementById('divVencimento').value
         };
 
@@ -648,6 +710,7 @@
             document.getElementById('divParcelas').value = '';
             document.getElementById('divPagas').value = '';
             document.getElementById('divVencimento').value = '';
+            document.getElementById('divDataAdicao').value = hojeISO();
         }
         salvarERenderizar();
     }
@@ -660,7 +723,8 @@
         document.getElementById('divValorOriginal').value = item.vOriginal;
         document.getElementById('divValorAtual').value = item.vAtual;
         document.getElementById('divParcelas').value = item.parcelas || 1;
-        document.getElementById('divPagas').value = item.pagas || 0;
+        document.getElementById('divPagas').value = item.pagasIniciais !== undefined ? item.pagasIniciais : (item.pagas || 0);
+        document.getElementById('divDataAdicao').value = item.dataAdicao || hojeISO();
         document.getElementById('divVencimento').value = item.vencimento || '';
         
         editandoId.divida = id;
@@ -668,6 +732,70 @@
         btn.innerText = "✓ Atualizar Dívida";
         btn.style.background = "var(--warning)";
         document.getElementById('btn-cancel-div').style.display = "block";
+    }
+
+    function calcularSaldoDividaNoMes(i, mesRef) {
+        const ultimoDiaMes = mesRef + '-31';
+        if (i.dataAdicao && i.dataAdicao > ultimoDiaMes) return null;
+        
+        const parcelas = Math.max(1, Number(i.parcelas || 1));
+        const pagamentosNoSistema = lancamentos.filter(l => l.dividaId === i.id && l.status === 'Pago' && l.data <= ultimoDiaMes).length;
+        const pagasIniciais = Number(i.pagasIniciais !== undefined ? i.pagasIniciais : (i.pagas || 0));
+        const totalPagasNoMes = Math.min(parcelas, pagasIniciais + pagamentosNoSistema);
+        
+        const valorParcela = Number(i.vAtual || 0) / parcelas;
+        const saldo = Math.max(0, Number(i.vAtual || 0) - (valorParcela * totalPagasNoMes));
+
+        let [y, m] = mesRef.split('-');
+        let prevD = new Date(y, m - 1, 0);
+        let prevMesUltimoDia = prevD.toISOString().slice(0,10);
+        
+        const pagamentosAteMesPassado = lancamentos.filter(l => l.dividaId === i.id && l.status === 'Pago' && l.data <= prevMesUltimoDia).length;
+        const pagasAteMesPassado = Math.min(parcelas, pagasIniciais + pagamentosAteMesPassado);
+        
+        if (pagasAteMesPassado >= parcelas) return null;
+
+        return {
+            totalPagasNoMes,
+            valorParcela,
+            saldo
+        };
+    }
+
+    function pagarParcela(id, valorParcela) {
+        const divida = dividas.find(i => i.id === id);
+        if(!divida) return;
+        
+        const mesRef = document.getElementById('mesReferencia').value || mesAtualISO();
+        let dataSugestao = divida.vencimento || hojeISO();
+        if (!dataSugestao.startsWith(mesRef)) dataSugestao = mesRef + '-10';
+
+        let dataPagamento = prompt(`Confirma o pagamento de ${formataMoeda(valorParcela)} dessa conta?\n\nQual a data do pagamento?`, dataSugestao);
+        if(!dataPagamento) return; 
+
+        const novoLancamento = {
+            id: Date.now(),
+            desc: `Parcela: ${divida.nome}`,
+            tipo: 'Saida',
+            cat: 'Dividas',
+            valor: valorParcela,
+            data: dataPagamento,
+            metodo: 'Outros',
+            status: 'Pago',
+            recorrente: false,
+            dividaId: divida.id 
+        };
+        
+        lancamentos.push(novoLancamento);
+
+        if(divida.vencimento) {
+            const d = new Date(divida.vencimento + 'T12:00:00'); 
+            d.setMonth(d.getMonth() + 1); 
+            divida.vencimento = d.toISOString().slice(0,10);
+        }
+
+        salvarERenderizar();
+        alert(`✅ Parcela paga e enviada com sucesso para os Lançamentos Mensais!`);
     }
 
     function addCompra() {
@@ -710,6 +838,30 @@
         document.getElementById('compraSubtotal').innerText = formataMoeda(quantidade * valorUnitario);
     }
 
+    function atualizarQtdCompra(id, campo) {
+        const item = compras.find(i => i.id === id);
+        if(!item) return;
+
+        const texto = campo.value.trim();
+        const novaQtd = texto === '' ? null : parseFloat(texto);
+        if(novaQtd !== null && (!Number.isFinite(novaQtd) || novaQtd < 0)) return;
+
+        item.quantidade = novaQtd || 0;
+        const valorUnit = item.valorUnitario != null ? Number(item.valorUnitario) : (item.valor || 0);
+        item.valor = (novaQtd || 0) * valorUnit;
+        
+        salvarNuvemSilencioso();
+
+        const totalLinha = document.getElementById(`total-item-${id}`);
+        if(totalLinha) {
+            totalLinha.innerHTML = (item.valorUnitario == null && !item.valor) 
+                ? '<span style="color:#a1a1aa;">À definir</span>' 
+                : formataMoeda(item.valor);
+        }
+            
+        atualizarResumoCompras();
+    }
+
     function atualizarValorCompra(id, campo) {
         const item = compras.find(i => i.id === id);
         if(!item) return;
@@ -719,15 +871,17 @@
         if(novoValor !== null && (!Number.isFinite(novoValor) || novoValor < 0)) return;
 
         item.valorUnitario = novoValor;
-        item.valor = Number(item.quantidade || 1) * (novoValor || 0);
+        const qtd = item.quantidade != null ? Number(item.quantidade) : 1;
+        item.valor = qtd * (novoValor || 0);
         
-        // Envia pro Google sem piscar a tela
         salvarNuvemSilencioso();
 
         const totalLinha = document.getElementById(`total-item-${id}`);
-        if(totalLinha) totalLinha.innerHTML = novoValor === null
-            ? '<span style="color:#a1a1aa;">À definir</span>'
-            : formataMoeda(item.valor);
+        if(totalLinha) {
+            totalLinha.innerHTML = novoValor === null
+                ? '<span style="color:#a1a1aa;">À definir</span>'
+                : formataMoeda(item.valor);
+        }
             
         atualizarResumoCompras();
     }
@@ -736,20 +890,24 @@
         let total = 0;
         let totalComprado = 0;
         compras.forEach(i => {
-            const quantidade = Number(i.quantidade || 1);
+            const quantidade = i.quantidade != null ? Number(i.quantidade) : 1;
             const valorUnitario = i.valorUnitario != null ? Number(i.valorUnitario) : Number(i.valor || 0);
             const valorTotal = quantidade * valorUnitario;
             total += valorTotal;
             if(i.comprado) totalComprado += valorTotal;
         });
-        document.getElementById('totalCompras').innerHTML = `Total do Supermercado: ${formataMoeda(total)}<div class="subtle" style="margin-top:6px;">Marcados: ${formataMoeda(totalComprado)} • Restante: ${formataMoeda(total - totalComprado)}</div>`;
+        
+        document.getElementById('totalCompras').innerHTML = `
+            <div style="font-size: 1.2em; font-weight: bold; color: var(--success);">Total: ${formataMoeda(total)}</div>
+            <div class="subtle" style="margin-top:6px; font-size: 13px;">Marcados: ${formataMoeda(totalComprado)} &bull; Restante: ${formataMoeda(total - totalComprado)}</div>
+        `;
     }
 
     function editarCompra(id) {
         let item = compras.find(i => i.id === id);
         if(!item) return;
         document.getElementById('compraItem').value = item.nome;
-        document.getElementById('compraQtd').value = item.quantidade || 1;
+        document.getElementById('compraQtd').value = item.quantidade != null ? item.quantidade : 1;
         document.getElementById('compraUnidade').value = item.unidade || 'un.';
         document.getElementById('compraValorUnit').value = item.valorUnitario != null ? item.valorUnitario : (item.valor || '');
         calcularSubtotalCompra();
@@ -759,12 +917,59 @@
         btn.innerText = "✓ Atualizar Compra";
         btn.style.background = "var(--warning)";
         document.getElementById('btn-cancel-compra').style.display = "block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function toggleCompra(id) {
         let item = compras.find(i => i.id === id);
         if(item) {
             item.comprado = !item.comprado;
+            salvarERenderizar();
+        }
+    }
+
+    function lancarTotalMercado() {
+        let totalLancar = 0;
+        let itensAptos = 0;
+        
+        compras.forEach(i => {
+            if(i.valor > 0) {
+                totalLancar += i.valor;
+                itensAptos++;
+            }
+        });
+
+        if(totalLancar <= 0) {
+            alert("⚠️ Não há itens com preço preenchido para lançar. Preencha os valores primeiro.");
+            return;
+        }
+
+        if(!confirm(`Deseja lançar o valor total de ${formataMoeda(totalLancar)} nas despesas do mês?\n\nIsso marcará todos os itens da lista como comprados.`)) return;
+
+        const novoLancamento = {
+            id: Date.now(),
+            desc: `Compras de Supermercado (${itensAptos} itens)`,
+            tipo: 'Saida',
+            cat: 'Alimentacao',
+            valor: totalLancar,
+            data: hojeISO(),
+            metodo: 'Outros',
+            status: 'Pago',
+            recorrente: false,
+            recorrenciaId: Date.now()
+        };
+
+        lancamentos.push(novoLancamento);
+        compras.forEach(i => i.comprado = true);
+        
+        salvarERenderizar();
+        alert(`✅ Sucesso! O valor de ${formataMoeda(totalLancar)} foi lançado no seu balanço mensal como Alimentação.`);
+    }
+
+    function limparListaMercado() {
+        if(compras.length === 0) return;
+        if(confirm("Tem certeza que deseja apagar TODOS os itens da lista de supermercado para começar uma nova compra?")) {
+            compras = [];
             salvarERenderizar();
         }
     }
@@ -857,6 +1062,7 @@
         if(tipo === 'divida') {
             document.getElementById('divNome').value = ''; document.getElementById('divValorOriginal').value = ''; document.getElementById('divValorAtual').value = '';
             document.getElementById('divParcelas').value = ''; document.getElementById('divPagas').value = ''; document.getElementById('divVencimento').value = '';
+            document.getElementById('divDataAdicao').value = hojeISO();
             let btn = document.getElementById('btn-salvar-div');
             btn.innerText = "➕ Adicionar Dívida"; btn.style.background = "var(--primary)";
             document.getElementById('btn-cancel-div').style.display = "none";
@@ -904,7 +1110,6 @@
         salvarNuvemSilencioso();
     }
 
-    // --- TRUQUE NINJA: Limpeza de dados invisíveis antes de enviar pro Google ---
     function salvarNuvemSilencioso() {
         let pacoteDados = {
             lancamentos: lancamentos,
@@ -962,32 +1167,44 @@
     function renderDividas() {
         const tbody = document.querySelector('#tabelaDividas tbody');
         tbody.innerHTML = '';
-        dividas.sort((a, b) => saldoDivida(a) - saldoDivida(b));
-        let total = 0;
+        
+        const mesRef = document.getElementById('mesReferencia').value || mesAtualISO();
+        let totalDevedorMes = 0;
+        let dividasAtivasNoMes = [];
 
         dividas.forEach(i => {
-            const parcelas = Math.max(1, Number(i.parcelas || 1));
-            const pagas = Math.min(parcelas, Math.max(0, Number(i.pagas || 0)));
-            const valorParcela = Number(i.vAtual || 0) / parcelas;
-            const saldo = saldoDivida(i);
-            total += saldo;
+            let analise = calcularSaldoDividaNoMes(i, mesRef);
+            if(analise) {
+                dividasAtivasNoMes.push({ ...i, ...analise });
+                totalDevedorMes += analise.saldo;
+            }
+        });
+
+        dividasAtivasNoMes.sort((a, b) => a.saldo - b.saldo);
+
+        dividasAtivasNoMes.forEach(i => {
+            const dataAd = i.dataAdicao ? i.dataAdicao.split('-').reverse().join('/') : '—';
             const venc = i.vencimento ? i.vencimento.split('-').reverse().join('/') : '—';
+            
             tbody.innerHTML += `
                 <tr>
+                    <td style="color:#a1a1aa; font-size: 13px;">${dataAd}</td>
                     <td>${escapar(i.nome)}</td><td>${escapar(i.tipo)}</td>
                     <td style="text-decoration: line-through; color: #a1a1aa;">${formataMoeda(i.vOriginal)}</td>
-                    <td>${formataMoeda(valorParcela)}</td><td>${pagas}/${parcelas}</td>
-                    <td style="color: ${saldo > 0 ? 'var(--danger)' : 'var(--success)'}; font-weight:bold;">${formataMoeda(saldo)}</td>
+                    <td>${formataMoeda(i.valorParcela)}</td><td>${i.totalPagasNoMes}/${i.parcelas}</td>
+                    <td style="color: ${i.saldo > 0 ? 'var(--danger)' : 'var(--success)'}; font-weight:bold;">${formataMoeda(i.saldo)}</td>
                     <td>${venc}</td>
                     <td style="min-width: 190px;">
-                        ${saldo > 0 ? `<button class="btn-small" style="background:var(--success); color: white;" onclick="pagarParcela(${i.id})" title="Registrar uma parcela paga">✓ Parcela</button>` : '<span class="pill pill-success">Quitada</span>'}
+                        ${i.saldo > 0 ? `<button class="btn-small" style="background:var(--success); color: white;" onclick="pagarParcela(${i.id}, ${i.valorParcela})" title="Registrar pagamento">✓ Pagar</button>` : '<span class="pill pill-success">Quitada</span>'}
                         <button class="btn-small btn-edit" onclick="editarDivida(${i.id})">✏️</button>
                         <button class="btn-small btn-del" onclick="deletar('dividas', ${i.id})">X</button>
                     </td>
                 </tr>
             `;
         });
-        document.getElementById('lblTotalDividas').innerText = `Total: ${formataMoeda(total)}`;
+        
+        document.getElementById('tfooterSaldoDevedor').innerText = formataMoeda(totalDevedorMes);
+        document.getElementById('lblTotalDividas').innerText = `Total Mês: ${formataMoeda(totalDevedorMes)}`;
     }
 
     function saldoDivida(i) {
@@ -1010,27 +1227,32 @@
     function renderCompras() {
         const tbody = document.querySelector('#tabelaCompras tbody');
         tbody.innerHTML = '';
-        let total = 0;
-        let totalComprado = 0;
         
         compras.forEach(i => {
-            const quantidade = Number(i.quantidade || 1);
+            const quantidade = i.quantidade != null ? Number(i.quantidade) : 1;
             const valorUnitario = i.valorUnitario != null ? Number(i.valorUnitario) : Number(i.valor || 0);
             const valorTotal = quantidade * valorUnitario;
             const temValorDefinido = i.valorUnitario != null || Number(i.valor || 0) > 0;
-            total += valorTotal;
-            if(i.comprado) totalComprado += valorTotal;
             
             let displayTotal = temValorDefinido ? formataMoeda(valorTotal) : '<span style="color:#a1a1aa;">À definir</span>';
             let estiloNome = i.comprado ? 'text-decoration: line-through; color: #a1a1aa;' : '';
-            
+
             tbody.innerHTML += `
                 <tr style="${i.comprado ? 'opacity: 0.6;' : ''}">
                     <td><input type="checkbox" onchange="toggleCompra(${i.id})" ${i.comprado ? 'checked' : ''}></td>
                     <td style="${estiloNome}">${escapar(i.nome)}</td>
-                    <td style="${estiloNome}">${quantidade.toLocaleString('pt-BR')} ${escapar(i.unidade || 'un.')}</td>
+                    <td style="${estiloNome}">
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <input class="inline-price" style="width:70px; min-width:60px;" type="number" min="0" step="0.01" value="${quantidade}" oninput="atualizarQtdCompra(${i.id}, this)">
+                            <span style="font-size:12px; color:#64748b;">${escapar(i.unidade || 'un.')}</span>
+                        </div>
+                    </td>
                     <td><input class="inline-price" type="number" min="0" step="0.01" value="${temValorDefinido ? valorUnitario : ''}" placeholder="Opcional" aria-label="Valor unitário de ${escapar(i.nome)}" oninput="atualizarValorCompra(${i.id}, this)"></td>
-                    <td id="total-item-${i.id}" style="${estiloNome};font-weight:bold;color:${i.comprado ? '#a1a1aa' : 'var(--success)'}">${displayTotal}</td>
+                    
+                    <td style="${estiloNome};font-weight:bold;color:${i.comprado ? '#a1a1aa' : 'var(--success)'}">
+                        <span id="total-item-${i.id}">${displayTotal}</span>
+                    </td>
+
                     <td style="min-width: 105px;">
                         <button class="btn-small btn-clone" onclick="clonar('compras', ${i.id})">📄</button>
                         <button class="btn-small btn-del" onclick="deletar('compras', ${i.id})">X</button>
@@ -1175,9 +1397,17 @@
                 compras = Array.isArray(d.compras) ? d.compras : [];
                 listaMetas = Array.isArray(d.listaMetas) ? d.listaMetas : [];
                 orcamentos = d.orcamentos && typeof d.orcamentos === 'object' ? d.orcamentos : {};
+                
+                dividas.forEach(div => {
+                    if(div.pagasIniciais === undefined) div.pagasIniciais = div.pagas || 0;
+                });
+
                 if(d.titulo) document.getElementById('tituloApp').innerText = d.titulo;
                 if(d.baseRenda != null) document.getElementById('baseRenda').value = d.baseRenda;
-                if(d.mesReferencia) document.getElementById('mesReferencia').value = d.mesReferencia;
+                if(d.mesReferencia) {
+                    document.getElementById('mesReferencia').value = d.mesReferencia;
+                    sincronizarMes(d.mesReferencia);
+                }
                 
                 if(d.simTransporte) { 
                     localStorage.setItem('simTransporte', JSON.stringify(d.simTransporte)); 
@@ -1245,12 +1475,18 @@
     }
 
     function atualizarDashboardEGrafico() {
-        const mes = document.getElementById('mesReferencia').value || mesAtualISO();
-        const itensMes = lancamentos.filter(i => !i.data || i.data.startsWith(mes));
+        const mesRef = document.getElementById('mesReferencia').value || mesAtualISO();
+        const itensMes = lancamentos.filter(i => !i.data || i.data.startsWith(mesRef));
+        
         const totalEntradas = itensMes.filter(i => i.tipo === 'Entrada' && i.status === 'Pago').reduce((acc, i) => acc + Number(i.valor || 0), 0);
         const totalSaidas = itensMes.filter(i => i.tipo === 'Saida' && i.status === 'Pago').reduce((acc, i) => acc + Number(i.valor || 0), 0);
         const totalPendentes = itensMes.filter(i => i.tipo === 'Saida' && i.status === 'Pendente').reduce((acc, i) => acc + Number(i.valor || 0), 0);
-        const totalDividas = dividas.reduce((acc, i) => acc + saldoDivida(i), 0);
+        
+        let totalDividas = 0;
+        dividas.forEach(i => {
+            let analise = calcularSaldoDividaNoMes(i, mesRef);
+            if(analise) totalDividas += analise.saldo;
+        });
         
         let saldoGuardado = 0;
         listaMetas.forEach(m => {
@@ -1276,7 +1512,7 @@
         chartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Entradas', 'Saídas Pagas', 'Pendentes', 'Total Dívidas', 'Metas Guardadas'],
+                labels: ['Entradas', 'Saídas Pagas', 'Pendentes', 'Dívidas Mês', 'Metas Guardadas'],
                 datasets: [{
                     label: 'Resumo (R$)',
                     data: [totalEntradas, totalSaidas, totalPendentes, totalDividas, saldoGuardado],
@@ -1290,7 +1526,12 @@
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: { ticks: { color: '#a1a1aa' }, grid: { color: '#27272a' } },
+                    y: { 
+                        beginAtZero: true,
+                        suggestedMax: 100,
+                        ticks: { color: '#a1a1aa' }, 
+                        grid: { color: '#27272a' } 
+                    },
                     x: { ticks: { color: '#a1a1aa' }, grid: { display: false } }
                 }
             }
