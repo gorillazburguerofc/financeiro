@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gestão Financeira Pessoal</title>
+    <title>Vitória - Gestão Financeira Pessoal</title>
     
     <!-- Bibliotecas e Gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -63,7 +63,7 @@
         .btn-del { background: var(--danger); color: white; }
         .btn-cancel { background: var(--danger); color: white; display: none; }
         
-        /* Tabelas agora respeitam o tamanho do pai */
+        /* Tabelas e Grids Internos */
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border-radius: 6px; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: 14px; }
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
@@ -92,10 +92,15 @@
         .toolbar label { background: #18181b; border: 1px solid var(--border); border-radius: 6px; padding: 13px; cursor: pointer; font-weight: bold; }
         .toolbar input[type="file"] { display: none; }
         .subtle { color: #a1a1aa; font-size: 13px; }
+        
+        /* Pílulas de Status */
         .pill { display: inline-block; padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: bold; }
         .pill-success { background: rgba(16,185,129,.16); color: var(--success); }
         .pill-danger { background: rgba(239,68,68,.16); color: var(--danger); }
         .pill-warning { background: rgba(245,158,11,.16); color: var(--warning); }
+        .pill-info { background: rgba(59,130,246,.16); color: var(--info); }
+        .pill-gray { background: #3f3f46; color: #d4d4d8; }
+        
         .budget-row { background: #18181b; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
         .budget-head { display:flex; justify-content:space-between; gap:10px; margin-bottom:8px; }
         .empty-state { text-align:center; padding:18px; color:#71717a; }
@@ -106,24 +111,33 @@
         
         .fechamento-mercado { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; background: #18181b; padding: 15px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: wrap; gap: 15px; }
         .fechamento-mercado-btns { display: flex; gap: 10px; flex-wrap: wrap; width: 100%; }
+
+        /* CALENDÁRIO CSS */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; text-align: center; }
+        .cal-header { font-size: 12px; font-weight: bold; color: var(--primary); padding: 5px 0; border-bottom: 1px solid var(--border); }
+        .cal-day { background: #18181b; border: 1px solid var(--border); border-radius: 6px; min-height: 80px; padding: 5px; display: flex; flex-direction: column; gap: 4px; }
+        .cal-day.empty { background: transparent; border: none; }
+        .cal-day-num { font-size: 14px; font-weight: bold; color: #d4d4d8; text-align: right; margin-bottom: 4px; }
+        .cal-day.hoje { border: 1px solid var(--info); background: rgba(59,130,246,0.1); }
+        .cal-item { font-size: 11px; padding: 3px 4px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
         
-        /* 📱 RESPONSIVIDADE EXTREMA PARA CELULAR (Foco Anti-Vazamento) */
+        /* HISTÓRICO CSS MENSAL */
+        .smart-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-top: 15px; }
+        
+        /* 📱 RESPONSIVIDADE EXTREMA PARA CELULAR */
         @media (max-width: 768px) {
             body { padding: 10px; }
             .container { gap: 12px; padding-bottom: 20px; }
             .card { padding: 15px; }
             h1 { font-size: 20px; line-height: 1.2; }
             
-            /* Títulos e inputs acoplados */
             .section-title { flex-direction: column; align-items: flex-start; gap: 8px; }
             .section-title input[type="month"] { width: 100% !important; margin-top: 5px; }
             
-            /* Inputs dividindo linha corretamente */
             .flex-row { gap: 8px; }
             .flex-row > * { min-width: calc(50% - 8px) !important; flex: 1 1 calc(50% - 8px); margin: 0 !important; }
             
-            /* Elementos que devem ocupar a linha inteira no celular */
-            #lancDesc, #divNome, #compraItem, .btn-group-metas, .fechamento-mercado-btns, .btn-group-metas button { 
+            #lancDesc, #divNome, #compraItem, #assNome, .btn-group-metas, .fechamento-mercado-btns, .btn-group-metas button { 
                 min-width: 100% !important; width: 100% !important; 
             }
             .btn-group-metas { flex-direction: column; gap: 8px; }
@@ -133,7 +147,6 @@
             .fechamento-mercado-btns button { width: 100% !important; margin: 0 !important; }
             #totalCompras { text-align: center !important; width: 100%; }
 
-            /* Menus e Dashboards */
             .toolbar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
             .toolbar button, .toolbar label { width: 100%; min-width: 0 !important; margin: 0; padding: 12px 10px; font-size: 13px; }
             
@@ -145,6 +158,11 @@
             .status-nuvem { top: 5px; right: 5px; font-size: 10px; padding: 4px 8px; }
             .inline-price { width: 100%; min-width: 0; padding: 8px; font-size: 14px; }
             th, td { padding: 8px 6px; font-size: 13px; }
+            
+            /* Compacta Calendário no Celular */
+            .cal-day { min-height: 60px; padding: 2px; }
+            .cal-item { font-size: 9px; padding: 2px; }
+            .cal-day-num { font-size: 12px; }
         }
 
         @media print {
@@ -244,6 +262,20 @@
         <div id="listaMetasContainer"></div>
     </div>
 
+    <!-- ASSINATURAS -->
+    <div class="card full-width" id="assinaturas">
+        <h2>Controle de Assinaturas <span id="totalAssinaturas" class="subtle"></span></h2>
+        <p class="subtle">As assinaturas ativas são geradas automaticamente na aba de Lançamentos Mensais todo mês. Se pausar, a cobrança sumirá.</p>
+        <div class="flex-row">
+            <input type="text" id="assNome" placeholder="Ex.: Academia, Netflix">
+            <input type="number" id="assValor" min="0" step="0.01" placeholder="Valor mensal (R$)">
+            <input type="number" id="assDia" min="1" max="31" placeholder="Dia da cobrança">
+            <select id="assCategoria"><option value="Lazer">Lazer</option><option value="Saude">Saúde</option><option value="Educacao">Educação</option><option value="Outros">Outros</option></select>
+            <button id="btn-salvar-ass" onclick="addAssinatura()">➕ Adicionar</button>
+        </div>
+        <div id="listaAssinaturas"></div>
+    </div>
+
     <!-- CONTROLE MENSAL -->
     <div class="card full-width">
         <h2 class="section-title">
@@ -300,9 +332,21 @@
         </div>
     </div>
 
+    <!-- CALENDÁRIO FINANCEIRO -->
+    <div class="card full-width" id="calendario">
+        <h2 class="section-title">
+            Calendário Financeiro
+            <input type="month" class="sync-mes" onchange="sincronizarMes(this.value)" style="width:auto; margin:0; padding:8px; font-size:14px;">
+        </h2>
+        <p class="subtle">Reúne contas, assinaturas e parcelas do mês selecionado. Verde: pago; amarelo: pendente; vermelho: atrasado.</p>
+        <div class="table-responsive" style="padding:10px; background: #000; border:none;">
+            <div id="calendarioFinanceiro" class="calendar-grid"></div>
+        </div>
+    </div>
+
     <!-- VENCIMENTOS -->
     <div class="card full-width">
-        <h2>Calendário de Vencimentos <span id="lblVencimentos" class="subtle"></span></h2>
+        <h2>Lista de Vencimentos <span id="lblVencimentos" class="subtle"></span></h2>
         <p class="subtle">Contas pendentes são organizadas pela data do mês atual.</p>
         <div id="listaVencimentos"></div>
     </div>
@@ -316,7 +360,7 @@
                 <span id="lblTotalDividas" style="color: var(--danger); font-size: 16px; white-space:nowrap;">Mês: R$ 0,00</span>
             </div>
         </h2>
-        <p style="font-size: 13px; color: #a1a1aa;">Ao pagar uma parcela, o valor vai automaticamente para os Lançamentos Mensais.</p>
+        <p style="font-size: 13px; color: #a1a1aa;">Ao pagar uma parcela, o valor é lançado nas suas Saídas Mensais. Dívidas quitadas em meses anteriores sumirão sozinhas do mês atual.</p>
         
         <div class="flex-row">
             <input type="text" id="divNome" placeholder="Nome da Conta/Credor">
@@ -334,7 +378,7 @@
             <input type="number" id="divPagas" min="0" placeholder="Parcelas pagas ANTES do app">
             <div>
                 <label class="subtle" style="margin-bottom: 2px;">Data de Adição</label>
-                <input type="date" id="divDataAdicao" title="Data que a conta foi adicionada no sistema">
+                <input type="date" id="divDataAdicao" title="Data que a conta foi adicionada">
             </div>
             <div>
                 <label class="subtle" style="margin-bottom: 2px;">Próx. Vencimento</label>
@@ -363,10 +407,17 @@
         </div>
     </div>
 
-    <!-- RELATÓRIO DO MÊS -->
+    <!-- A CAIXA DO RELATÓRIO MENSAL FOI ADICIONADA DE VOLTA AQUI 🛡️ -->
     <div class="card">
         <h2>Relatório Mensal Automático</h2>
         <div id="relatorioMensal" class="meta-card"></div>
+    </div>
+
+    <!-- RELATÓRIO E HISTÓRICO MENSAL -->
+    <div class="card full-width" id="historico">
+        <h2>Histórico e Comparação Mensal</h2>
+        <p class="subtle" style="margin-top: 0;">Visualize de forma clara o comportamento dos últimos 6 meses (Entradas vs Saídas).</p>
+        <div id="historicoMensal" class="smart-grid"></div>
     </div>
 
     <!-- COMPARADOR DE TRANSPORTE -->
@@ -423,7 +474,7 @@
     </div>
 
     <!-- BASES FINANCEIRAS -->
-    <div class="card">
+    <div class="card full-width">
         <h2>Simulador de Bases Financeiras</h2>
         <label style="font-size: 13px; color: #a1a1aa;">Renda Mensal Fixa (Fica salvo)</label>
         <input type="number" id="baseRenda" placeholder="Renda Mensal a Distribuir (R$)" oninput="salvarRendaBase()">
@@ -474,12 +525,13 @@
     let compras = [];
     let listaMetas = [];
     let orcamentos = {};
+    let assinaturas = [];
     let configGerais = {
         chkMim: true, chkDoar: true, chkContas: true, 
         chkInvest: true, chkGuardar: true, chkLivre: true
     };
     
-    let editandoId = { lancamento: null, divida: null, compra: null, meta: null };
+    let editandoId = { lancamento: null, divida: null, compra: null, meta: null, assinatura: null };
     let chartInstance = null;
 
     function formataMoeda(v) { return Number(v || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}); }
@@ -499,6 +551,7 @@
                 compras = dados.compras || [];
                 listaMetas = dados.listaMetas || [];
                 orcamentos = dados.orcamentos || {};
+                assinaturas = dados.assinaturas || [];
                 
                 dividas.forEach(d => {
                     if(d.pagasIniciais === undefined) d.pagasIniciais = d.pagas || 0;
@@ -542,6 +595,7 @@
                 compras = backup.compras || [];
                 listaMetas = backup.listaMetas || [];
                 orcamentos = backup.orcamentos || {};
+                assinaturas = backup.assinaturas || [];
                 
                 dividas.forEach(d => {
                     if(d.pagasIniciais === undefined) d.pagasIniciais = d.pagas || 0;
@@ -586,7 +640,7 @@
         salvarERenderizar();
     }
 
-    // --- NOVA FUNÇÃO: SINCRONIZAR TODOS OS CALENDÁRIOS ---
+    // --- SINCRONIZAR TODOS OS CALENDÁRIOS ---
     function sincronizarMes(valorSelecionado) {
         document.querySelectorAll('.sync-mes').forEach(input => {
             input.value = valorSelecionado;
@@ -610,6 +664,7 @@
                 compras = dados.compras || [];
                 listaMetas = dados.listaMetas || [];
                 orcamentos = dados.orcamentos || {};
+                assinaturas = dados.assinaturas || [];
                 
                 dividas.forEach(d => {
                     if(d.pagasIniciais === undefined) d.pagasIniciais = d.pagas || 0;
@@ -658,15 +713,163 @@
 
     function gerarRecorrentesDoMes() {
         const mes = document.getElementById('mesReferencia').value || mesAtualISO();
-        const modelos = lancamentos.filter(i => i.recorrente && i.data);
+        
+        // 1. Gera Recorrentes Padrão
+        const modelos = lancamentos.filter(i => i.recorrente && i.data && !i.isAssinatura);
         modelos.forEach(modelo => {
             const chave = `${modelo.recorrenciaId || modelo.id}-${mes}`;
             if(lancamentos.some(i => i.chaveRecorrencia === chave) || modelo.data.startsWith(mes)) return;
             const dia = Math.min(parseInt(modelo.data.slice(8,10)) || 1, new Date(Number(mes.slice(0,4)), Number(mes.slice(5,7)), 0).getDate());
             lancamentos.push({...modelo, id: Date.now() + Math.random(), data: `${mes}-${String(dia).padStart(2,'0')}`, status: modelo.tipo === 'Saida' ? 'Pendente' : modelo.status, recorrenciaId: modelo.recorrenciaId || modelo.id, chaveRecorrencia: chave});
         });
+        
+        // 2. Gera Assinaturas Ativas
+        assinaturas.forEach(ass => {
+            if(ass.pausada) return; // Não gera se estiver pausada
+            
+            const chave = `ass-${ass.id}-${mes}`;
+            if(lancamentos.some(i => i.chaveRecorrencia === chave)) return;
+            
+            let maxDay = new Date(Number(mes.slice(0,4)), Number(mes.slice(5,7)), 0).getDate();
+            let diaCerto = Math.min(Number(ass.dia), maxDay);
+            
+            lancamentos.push({
+                id: Date.now() + Math.random(),
+                desc: `Assinatura: ${ass.nome}`,
+                tipo: 'Saida',
+                cat: ass.categoria,
+                valor: Number(ass.valor),
+                data: `${mes}-${String(diaCerto).padStart(2,'0')}`,
+                metodo: 'Credito',
+                status: 'Pendente',
+                recorrente: false,
+                chaveRecorrencia: chave,
+                isAssinatura: true
+            });
+        });
     }
 
+    // --- ASSINATURAS ---
+    function addAssinatura() {
+        const nome = document.getElementById('assNome').value;
+        const valor = parseFloat(document.getElementById('assValor').value) || 0;
+        const dia = parseInt(document.getElementById('assDia').value) || 1;
+        
+        if(!nome || valor <= 0) return alert("Preencha o nome e o valor da assinatura.");
+        
+        const item = {
+            id: editandoId.assinatura || Date.now(),
+            nome: nome,
+            valor: valor,
+            dia: dia,
+            categoria: document.getElementById('assCategoria').value,
+            pausada: editandoId.assinatura ? (assinaturas.find(a => a.id === editandoId.assinatura)?.pausada || false) : false
+        };
+
+        if(editandoId.assinatura) {
+            let index = assinaturas.findIndex(a => a.id === editandoId.assinatura);
+            if(index !== -1) assinaturas[index] = item;
+            
+            // Se o valor/dia mudou, atualiza a cobrança PENDENTE gerada neste mês
+            const mes = document.getElementById('mesReferencia').value || mesAtualISO();
+            const chave = `ass-${item.id}-${mes}`;
+            let lancIndex = lancamentos.findIndex(l => l.chaveRecorrencia === chave && l.status === 'Pendente');
+            if(lancIndex !== -1) {
+                let maxDay = new Date(Number(mes.slice(0,4)), Number(mes.slice(5,7)), 0).getDate();
+                let diaCerto = Math.min(Number(item.dia), maxDay);
+                lancamentos[lancIndex].valor = item.valor;
+                lancamentos[lancIndex].desc = `Assinatura: ${item.nome}`;
+                lancamentos[lancIndex].data = `${mes}-${String(diaCerto).padStart(2,'0')}`;
+            }
+            
+            cancelarEdicao('assinatura');
+        } else {
+            assinaturas.push(item);
+            document.getElementById('assNome').value = '';
+            document.getElementById('assValor').value = '';
+            document.getElementById('assDia').value = '';
+        }
+        
+        gerarRecorrentesDoMes();
+        salvarERenderizar();
+    }
+
+    function editarAssinatura(id) {
+        let item = assinaturas.find(a => a.id === id);
+        if(!item) return;
+        document.getElementById('assNome').value = item.nome;
+        document.getElementById('assValor').value = item.valor;
+        document.getElementById('assDia').value = item.dia;
+        document.getElementById('assCategoria').value = item.categoria || 'Lazer';
+        
+        editandoId.assinatura = id;
+        let btn = document.getElementById('btn-salvar-ass');
+        btn.innerText = "✓ Atualizar";
+        btn.style.background = "var(--warning)";
+        window.scrollTo({ top: document.getElementById('assinaturas').offsetTop - 20, behavior: 'smooth' });
+    }
+
+    function togglePausaAssinatura(id) {
+        let ass = assinaturas.find(a => a.id === id);
+        if(ass) {
+            ass.pausada = !ass.pausada;
+            
+            // Se pausar, remove a cobrança PENDENTE gerada no mês atual para que não compute nos gastos
+            const mes = document.getElementById('mesReferencia').value || mesAtualISO();
+            const chave = `ass-${id}-${mes}`;
+            
+            if (ass.pausada) {
+                lancamentos = lancamentos.filter(l => !(l.chaveRecorrencia === chave && l.status === 'Pendente'));
+            } else {
+                gerarRecorrentesDoMes(); // Regera se foi despausado
+            }
+            
+            salvarERenderizar();
+        }
+    }
+
+    function deletarAssinatura(id) {
+        if(confirm("Tem certeza que deseja excluir esta assinatura permanentemente?")) {
+            assinaturas = assinaturas.filter(a => a.id !== id);
+            // Opcional: apagar as cobranças pendentes dela
+            lancamentos = lancamentos.filter(l => !(l.chaveRecorrencia && l.chaveRecorrencia.startsWith(`ass-${id}-`) && l.status === 'Pendente'));
+            salvarERenderizar();
+        }
+    }
+
+    function renderAssinaturas() {
+        const box = document.getElementById('listaAssinaturas');
+        let html = '';
+        let totalAtivas = 0;
+        
+        assinaturas.forEach(ass => {
+            if(!ass.pausada) totalAtivas += Number(ass.valor);
+            
+            let corCard = ass.pausada ? 'border-color: #3f3f46; opacity: 0.6;' : 'border-color: var(--primary);';
+            let labelStatus = ass.pausada ? '<span class="pill pill-gray">Pausada</span>' : '<span class="pill pill-success">Ativa</span>';
+            let txtPausa = ass.pausada ? '▶️ Retomar' : '⏸️ Pausar';
+            
+            html += `
+                <div class="budget-row" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-left: 4px solid; ${corCard}">
+                    <div style="flex:1; min-width: 150px;">
+                        <strong>${escapar(ass.nome)}</strong> ${labelStatus}
+                        <div class="subtle">Todo dia ${ass.dia} • ${escapar(ass.categoria || 'Lazer')}</div>
+                    </div>
+                    <div style="font-weight:bold; font-size:16px;">${formataMoeda(ass.valor)}/mês</div>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn-small" style="background: #3f3f46; color:white;" onclick="togglePausaAssinatura(${ass.id})">${txtPausa}</button>
+                        <button class="btn-small btn-edit" onclick="editarAssinatura(${ass.id})">✏️</button>
+                        <button class="btn-small btn-del" onclick="deletarAssinatura(${ass.id})">X</button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        box.innerHTML = html || '<div class="empty-state">Nenhuma assinatura cadastrada.</div>';
+        document.getElementById('totalAssinaturas').innerText = `Ativas: ${formataMoeda(totalAtivas)}/mês`;
+    }
+
+    // --- LANÇAMENTOS ---
     function addLancamento() {
         const desc = document.getElementById('lancDesc').value;
         const valor = parseFloat(document.getElementById('lancValor').value) || 0;
@@ -1110,6 +1313,11 @@
             btn.innerText = "➕ Adicionar à Lista"; btn.style.background = "var(--primary)";
             document.getElementById('btn-cancel-compra').style.display = "none";
         }
+        if(tipo === 'assinatura') {
+            document.getElementById('assNome').value = ''; document.getElementById('assValor').value = ''; document.getElementById('assDia').value = '';
+            let btn = document.getElementById('btn-salvar-ass');
+            btn.innerText = "➕ Adicionar"; btn.style.background = "var(--primary)";
+        }
     }
 
     function deletar(tipo, id) {
@@ -1131,15 +1339,18 @@
         }
     }
 
-    // --- SALVAR NA NUVEM E RENDERIZAR ---
+    // --- SALVAR NA NUVEM E RENDERIZAR GERAL ---
     function salvarERenderizar() {
+        renderAssinaturas();
         renderLancamentos();
+        renderCalendario();
         renderDividas();
         renderCompras();
         renderMetas();
         renderOrcamentos();
         renderVencimentos();
         renderRelatorioMensal();
+        renderHistoricoMensal();
         calcularTransporte();
         calcularBases();
         atualizarDashboardEGrafico();
@@ -1147,7 +1358,6 @@
         salvarNuvemSilencioso();
     }
 
-    // --- TRUQUE NINJA: Limpeza de dados invisíveis antes de enviar pro Google ---
     function salvarNuvemSilencioso() {
         let pacoteDados = {
             lancamentos: lancamentos,
@@ -1155,6 +1365,7 @@
             compras: compras,
             listaMetas: listaMetas,
             orcamentos: orcamentos,
+            assinaturas: assinaturas,
             titulo: document.getElementById('tituloApp').innerText,
             baseRenda: document.getElementById('baseRenda').value,
             mesReferencia: document.getElementById('mesReferencia').value,
@@ -1183,23 +1394,152 @@
         const status = document.getElementById('filtroStatus')?.value || '';
         const mes = document.getElementById('mesReferencia')?.value || mesAtualISO();
         const filtrados = lancamentos.filter(i => (!i.data || i.data.startsWith(mes)) && (!busca || String(i.desc).toLowerCase().includes(busca)) && (!tipo || i.tipo === tipo) && (!status || i.status === status));
+        
         filtrados.sort((a,b) => String(b.data || '').localeCompare(String(a.data || ''))).forEach(i => {
             const corTipo = i.tipo === 'Entrada' ? 'color: var(--success)' : 'color: var(--danger)';
             let dataStr = i.data ? i.data.split('-').reverse().join('/') : 'Sem Data';
+            
+            let btnAcoes = i.isAssinatura && i.status === 'Pendente' 
+                ? `<span class="subtle" style="font-size:10px;">Automático (Assinatura)</span>` 
+                : `<button class="btn-small btn-edit" onclick="editarLancamento(${i.id})">✏️</button>
+                   <button class="btn-small btn-clone" onclick="clonar('lancamentos', ${i.id})">📄</button>
+                   <button class="btn-small btn-del" onclick="deletar('lancamentos', ${i.id})">X</button>`;
+
             tbody.innerHTML += `
                 <tr>
                     <td>${dataStr}</td>
-                    <td>${escapar(i.desc)} ${i.recorrente ? '<span title="Recorrente">🔁</span>' : ''}</td><td>${escapar(i.cat)}</td><td>${escapar(i.metodo)}</td>
+                    <td>${escapar(i.desc)} ${i.recorrente ? '<span title="Recorrente">🔁</span>' : ''} ${i.isAssinatura ? '<span title="Assinatura">📅</span>' : ''}</td>
+                    <td>${escapar(i.cat)}</td><td>${escapar(i.metodo)}</td>
                     <td><span class="pill ${i.status === 'Pago' ? 'pill-success' : 'pill-warning'}">${escapar(i.status)}</span></td><td style="${corTipo}; font-weight:bold;">${formataMoeda(i.valor)}</td>
                     <td style="min-width: 140px;">
-                        <button class="btn-small btn-edit" onclick="editarLancamento(${i.id})">✏️</button>
-                        <button class="btn-small btn-clone" onclick="clonar('lancamentos', ${i.id})">📄</button>
-                        <button class="btn-small btn-del" onclick="deletar('lancamentos', ${i.id})">X</button>
+                        ${btnAcoes}
                     </td>
                 </tr>
             `;
         });
         if(!filtrados.length) tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Nenhum lançamento encontrado neste mês.</td></tr>';
+    }
+
+    // --- CALENDÁRIO FINANCEIRO VISUAL ---
+    function renderCalendario() {
+        const grid = document.getElementById('calendarioFinanceiro');
+        if(!grid) return;
+        
+        grid.innerHTML = `
+            <div class="cal-header">Dom</div><div class="cal-header">Seg</div><div class="cal-header">Ter</div>
+            <div class="cal-header">Qua</div><div class="cal-header">Qui</div><div class="cal-header">Sex</div><div class="cal-header">Sáb</div>
+        `;
+        
+        const mesRef = document.getElementById('mesReferencia').value || mesAtualISO();
+        const [anoStr, mesStr] = mesRef.split('-');
+        const ano = Number(anoStr);
+        const mes = Number(mesStr);
+        
+        const diasNoMes = new Date(ano, mes, 0).getDate();
+        const primeiroDiaSemana = new Date(ano, mes - 1, 1).getDay();
+        
+        const hojeOriginal = hojeISO();
+        
+        const saidasMes = lancamentos.filter(i => i.tipo === 'Saida' && i.data && i.data.startsWith(mesRef));
+
+        for(let i = 0; i < primeiroDiaSemana; i++) {
+            grid.innerHTML += `<div class="cal-day empty"></div>`;
+        }
+
+        for(let dia = 1; dia <= diasNoMes; dia++) {
+            const dataStr = `${mesRef}-${String(dia).padStart(2,'0')}`;
+            const isHoje = (dataStr === hojeOriginal) ? 'hoje' : '';
+            
+            let htmlItens = '';
+            
+            const itensDia = saidasMes.filter(i => i.data === dataStr);
+            itensDia.forEach(item => {
+                let cssClass = 'pill-warning';
+                if(item.status === 'Pago') cssClass = 'pill-success';
+                else if (dataStr < hojeOriginal) cssClass = 'pill-danger';
+                
+                htmlItens += `<div class="cal-item ${cssClass}" style="margin-top:2px;" title="${item.desc} - ${formataMoeda(item.valor)}">${formataMoeda(item.valor)} ${item.desc}</div>`;
+            });
+
+            grid.innerHTML += `
+                <div class="cal-day ${isHoje}">
+                    <div class="cal-day-num">${dia}</div>
+                    ${htmlItens}
+                </div>
+            `;
+        }
+    }
+
+    // --- HISTÓRICO MENSAL COM BARRAS PROPORCIONAIS ---
+    function renderHistoricoMensal() {
+        const grid = document.getElementById('historicoMensal');
+        if(!grid) return;
+        
+        let dadosAgrupados = {};
+        
+        const hoje = new Date();
+        for (let i = 5; i >= 0; i--) {
+            let d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+            let mStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            dadosAgrupados[mStr] = { entrada: 0, saida: 0 };
+        }
+        
+        lancamentos.forEach(l => {
+            if(!l.data || l.status !== 'Pago') return;
+            const mesAno = l.data.slice(0, 7);
+            if(!dadosAgrupados[mesAno]) dadosAgrupados[mesAno] = { entrada: 0, saida: 0 };
+            
+            if(l.tipo === 'Entrada') dadosAgrupados[mesAno].entrada += Number(l.valor);
+            if(l.tipo === 'Saida') dadosAgrupados[mesAno].saida += Number(l.valor);
+        });
+
+        const mesesOrdenados = Object.keys(dadosAgrupados).sort();
+        
+        let html = '';
+        const mesesNomes = ['jan.','fev.','mar.','abr.','mai.','jun.','jul.','ago.','set.','out.','nov.','dez.'];
+
+        mesesOrdenados.forEach(mesA => {
+            const val = dadosAgrupados[mesA];
+            const saldo = val.entrada - val.saida;
+            const cor = saldo >= 0 ? 'var(--success)' : 'var(--danger)';
+            
+            const [anoStr, mesStr] = mesA.split('-');
+            const mesNome = mesesNomes[parseInt(mesStr) - 1];
+            const anoCurto = anoStr.slice(2);
+            const formatMes = `${mesNome} de ${anoCurto}`;
+
+            let maxValor = Math.max(val.entrada, val.saida);
+            if (maxValor === 0) maxValor = 1; 
+            
+            let pctEntrada = (val.entrada / maxValor) * 100;
+            let pctSaida = (val.saida / maxValor) * 100;
+
+            html += `
+                <div class="meta-card" style="display:flex; flex-direction:column; gap:12px; background: #18181b; border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+                    <strong style="font-size: 15px; color: var(--text-light);">${formatMes}</strong>
+                    
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <span style="color: var(--success); font-size: 13px;">Entradas: ${formataMoeda(val.entrada)}</span>
+                        <div style="background: #27272a; height: 6px; border-radius: 3px; width: 100%;">
+                            <div style="background: var(--success); height: 100%; border-radius: 3px; width: ${pctEntrada}%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <span style="color: var(--danger); font-size: 13px;">Saídas: ${formataMoeda(val.saida)}</span>
+                        <div style="background: #27272a; height: 6px; border-radius: 3px; width: 100%;">
+                            <div style="background: var(--danger); height: 100%; border-radius: 3px; width: ${pctSaida}%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 4px; font-size: 14px;">
+                        <span style="color: #a1a1aa;">Resultado:</span> <strong style="color: ${cor};">${formataMoeda(saldo)}</strong>
+                    </div>
+                </div>
+            `;
+        });
+
+        grid.innerHTML = html;
     }
 
     function renderDividas() {
@@ -1251,15 +1591,40 @@
         return Math.max(0, Number(i.vAtual || 0) - (Number(i.vAtual || 0) / parcelas) * pagas);
     }
 
-    function pagarParcela(id) {
-        const item = dividas.find(i => i.id === id);
-        if(!item) return;
-        item.parcelas = Math.max(1, Number(item.parcelas || 1));
-        item.pagas = Math.min(item.parcelas, Number(item.pagas || 0) + 1);
-        if(item.vencimento && item.pagas < item.parcelas) {
-            const d = new Date(item.vencimento + 'T12:00:00'); d.setMonth(d.getMonth() + 1); item.vencimento = d.toISOString().slice(0,10);
+    function pagarParcela(id, valorParcela) {
+        const divida = dividas.find(i => i.id === id);
+        if(!divida) return;
+        
+        const mesRef = document.getElementById('mesReferencia').value || mesAtualISO();
+        let dataSugestao = divida.vencimento || hojeISO();
+        if (!dataSugestao.startsWith(mesRef)) dataSugestao = mesRef + '-10';
+
+        let dataPagamento = prompt(`Confirma o pagamento de ${formataMoeda(valorParcela)} dessa conta?\n\nQual a data do pagamento?`, dataSugestao);
+        if(!dataPagamento) return; 
+
+        const novoLancamento = {
+            id: Date.now(),
+            desc: `Parcela: ${divida.nome}`,
+            tipo: 'Saida',
+            cat: 'Dividas',
+            valor: valorParcela,
+            data: dataPagamento,
+            metodo: 'Outros',
+            status: 'Pago',
+            recorrente: false,
+            dividaId: divida.id 
+        };
+        
+        lancamentos.push(novoLancamento);
+
+        if(divida.vencimento) {
+            const d = new Date(divida.vencimento + 'T12:00:00'); 
+            d.setMonth(d.getMonth() + 1); 
+            divida.vencimento = d.toISOString().slice(0,10);
         }
+
         salvarERenderizar();
+        alert(`✅ Parcela paga e enviada com sucesso para os Lançamentos Mensais!`);
     }
 
     function renderCompras() {
@@ -1393,6 +1758,9 @@
     }
 
     function renderRelatorioMensal() {
+        const relatorioBox = document.getElementById('relatorioMensal');
+        if(!relatorioBox) return; // Trava de segurança anti-offline
+        
         const mes = document.getElementById('mesReferencia').value || mesAtualISO();
         const itens = lancamentos.filter(i => !i.data || i.data.startsWith(mes));
         const entradas = itens.filter(i => i.tipo === 'Entrada' && i.status === 'Pago').reduce((a,i) => a + Number(i.valor || 0), 0);
@@ -1402,7 +1770,8 @@
         itens.filter(i => i.tipo === 'Saida' && i.status === 'Pago').forEach(i => gastosCat[i.cat] = (gastosCat[i.cat] || 0) + Number(i.valor || 0));
         const maior = Object.entries(gastosCat).sort((a,b) => b[1]-a[1])[0];
         const economia = entradas - saidas;
-        document.getElementById('relatorioMensal').innerHTML = `<p>Entrou: <strong style="color:var(--success)">${formataMoeda(entradas)}</strong></p><p>Saiu: <strong style="color:var(--danger)">${formataMoeda(saidas)}</strong></p><p>Ainda pendente: <strong style="color:var(--warning)">${formataMoeda(pendentes)}</strong></p><p>Resultado atual: <strong style="color:${economia >= 0 ? 'var(--success)' : 'var(--danger)'}">${formataMoeda(economia)}</strong></p><p>Maior categoria de gasto: <strong>${maior ? escapar(maior[0]) + ' (' + formataMoeda(maior[1]) + ')' : 'Sem gastos pagos'}</strong></p>`;
+        
+        relatorioBox.innerHTML = `<p>Entrou: <strong style="color:var(--success)">${formataMoeda(entradas)}</strong></p><p>Saiu: <strong style="color:var(--danger)">${formataMoeda(saidas)}</strong></p><p>Ainda pendente: <strong style="color:var(--warning)">${formataMoeda(pendentes)}</strong></p><p>Resultado atual: <strong style="color:${economia >= 0 ? 'var(--success)' : 'var(--danger)'}">${formataMoeda(economia)}</strong></p><p>Maior categoria de gasto: <strong>${maior ? escapar(maior[0]) + ' (' + formataMoeda(maior[1]) + ')' : 'Sem gastos pagos'}</strong></p>`;
     }
 
     function calcularTransporte() {
@@ -1415,7 +1784,7 @@
     }
 
     function dadosDoSistema() {
-        return {versao:2, exportadoEm:new Date().toISOString(), lancamentos, dividas, compras, listaMetas, orcamentos, titulo:document.getElementById('tituloApp').innerText, baseRenda:document.getElementById('baseRenda').value, mesReferencia:document.getElementById('mesReferencia').value, configGerais, simTransporte:JSON.parse(localStorage.getItem('simTransporte') || '{}')};
+        return {versao:2, exportadoEm:new Date().toISOString(), lancamentos, dividas, compras, listaMetas, orcamentos, assinaturas, titulo:document.getElementById('tituloApp').innerText, baseRenda:document.getElementById('baseRenda').value, mesReferencia:document.getElementById('mesReferencia').value, configGerais, simTransporte:JSON.parse(localStorage.getItem('simTransporte') || '{}')};
     }
 
     function baixarArquivo(conteudo, nome, tipo) {
@@ -1435,6 +1804,7 @@
                 compras = Array.isArray(d.compras) ? d.compras : [];
                 listaMetas = Array.isArray(d.listaMetas) ? d.listaMetas : [];
                 orcamentos = d.orcamentos && typeof d.orcamentos === 'object' ? d.orcamentos : {};
+                assinaturas = Array.isArray(d.assinaturas) ? d.assinaturas : [];
                 
                 dividas.forEach(div => {
                     if(div.pagasIniciais === undefined) div.pagasIniciais = div.pagas || 0;
