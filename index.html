@@ -24,23 +24,37 @@
             --info: #3b82f6;
             --warning: #f59e0b;
             --border: #27272a;
+            --input-bg: #18181b;
+        }
+
+        /* ☀️ MODO DIA (LIGHT MODE VARIABLES) */
+        body.light-mode {
+            --bg-dark: #f3f4f6; 
+            --bg-card: #ffffff; 
+            --text-light: #1f2937;
+            --border: #d1d5db;
+            --input-bg: #f9fafb;
+            --info: #2563eb;
         }
         
         /* 🛡️ TRAVA ABSOLUTA DE TELA (CSS Grid Blowout Fix) */
         html { box-sizing: border-box; width: 100%; overflow-x: hidden; }
         *, *:before, *:after { box-sizing: inherit; min-width: 0; }
-        body { background-color: var(--bg-dark); color: var(--text-light); margin: 0; padding: 15px; width: 100%; overflow-x: hidden; }
+        body { background-color: var(--bg-dark); color: var(--text-light); margin: 0; padding: 15px; width: 100%; overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
         
         header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; position: relative;}
         h1 { margin: 0; color: var(--primary); outline: none; padding: 5px; border-radius: 5px; transition: 0.3s; font-size: 24px; line-height: 1.2; word-wrap: break-word;}
-        h1:hover, h1:focus { background: #1a1a1a; border: 1px dashed var(--primary); }
+        h1:hover, h1:focus { background: var(--input-bg); border: 1px dashed var(--primary); }
         h2 { border-bottom: 1px solid var(--border); padding-bottom: 5px; color: var(--primary); font-size: 18px; margin-top: 0; }
         
         .section-title { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         
-        /* Botão Status da Nuvem */
-        .status-nuvem { position: absolute; right: 10px; top: 10px; font-size: 12px; color: var(--success); font-weight: bold; cursor: pointer; background: #18181b; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.5); z-index: 10; transition: 0.2s; }
+        /* Botões do Topo */
+        .status-nuvem { position: absolute; right: 10px; top: 10px; font-size: 12px; color: var(--success); font-weight: bold; cursor: pointer; background: var(--input-bg); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; transition: 0.2s; }
         .status-nuvem:active { transform: scale(0.95); }
+
+        .theme-toggle { position: absolute; left: 10px; top: 10px; font-size: 12px; font-weight: bold; cursor: pointer; background: var(--input-bg); color: var(--text-light); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; transition: 0.2s; }
+        .theme-toggle:active { transform: scale(0.95); }
         
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 9999; color: var(--primary); font-size: 20px; font-weight: bold;}
 
@@ -48,10 +62,10 @@
         .container { width: 100%; max-width: 1200px; margin: 0 auto; display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); }
         @media (min-width: 992px) { .container { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
         
-        .card { background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(168, 85, 247, 0.05); width: 100%; overflow-wrap: break-word; }
+        .card { background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(168, 85, 247, 0.05); width: 100%; overflow-wrap: break-word; transition: background-color 0.3s, border-color 0.3s; }
         .full-width { grid-column: 1 / -1; }
         
-        input, select, button { width: 100%; padding: 12px; margin: 5px 0 15px; border-radius: 6px; border: 1px solid var(--border); background: #18181b; color: white; font-size: 16px; }
+        input, select, button { width: 100%; padding: 12px; margin: 5px 0 15px; border-radius: 6px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text-light); font-size: 16px; transition: background-color 0.3s, color 0.3s; }
         input[type="checkbox"] { width: 24px; height: 24px; margin: 0; accent-color: var(--primary); cursor: pointer; }
         
         button { background: var(--primary); color: #fff; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; padding: 14px; font-size: 16px; }
@@ -63,12 +77,11 @@
         .btn-del { background: var(--danger); color: white; }
         .btn-cancel { background: var(--danger); color: white; display: none; }
         
-        /* Tabelas e Grids Internos */
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border-radius: 6px; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: 14px; }
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
-        th { color: var(--primary); background: #18181b; white-space: nowrap; }
-        td { background: var(--bg-card); }
+        th { color: var(--primary); background: var(--input-bg); white-space: nowrap; }
+        td { background: var(--bg-card); transition: background-color 0.3s; }
         
         .flex-row { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
         .flex-row > * { flex: 1; min-width: 150px; }
@@ -76,60 +89,60 @@
         .total-box { font-size: 1.2em; font-weight: bold; text-align: right; color: var(--success); padding-top: 10px; }
         .checkbox-group { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 15px; }
         
-        .progress-bar { background: #27272a; width: 100%; height: 24px; border-radius: 12px; overflow: hidden; margin-top: 10px; }
+        .progress-bar { background: var(--border); width: 100%; height: 24px; border-radius: 12px; overflow: hidden; margin-top: 10px; }
         .progress-fill { background: var(--primary); width: 0%; height: 100%; transition: width 0.5s; text-align: center; font-size: 13px; line-height: 24px; color: #fff; font-weight: bold; }
 
         .dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .dash-card { background: #18181b; padding: 15px; border-radius: 8px; border-left: 4px solid; word-wrap: break-word; }
+        .dash-card { background: var(--input-bg); padding: 15px; border-radius: 8px; border-left: 4px solid; word-wrap: break-word; }
         .dash-card h3 { margin: 0 0 5px 0; font-size: 14px; color: #a1a1aa; }
         .dash-card p { margin: 0; font-size: 24px; font-weight: bold; }
 
-        .meta-card { background: #18181b; padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; }
+        .meta-card { background: var(--input-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; transition: background-color 0.3s; }
         .btn-group-metas { display: flex; align-items: flex-end; gap: 10px; }
         
         .toolbar { max-width: 1200px; margin: 0 auto 20px; display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
         .toolbar button, .toolbar label { width: auto; flex: 1; min-width: 140px; margin: 0; text-align: center; }
-        .toolbar label { background: #18181b; border: 1px solid var(--border); border-radius: 6px; padding: 13px; cursor: pointer; font-weight: bold; }
+        .toolbar label { background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; padding: 13px; cursor: pointer; font-weight: bold; }
         .toolbar input[type="file"] { display: none; }
         .subtle { color: #a1a1aa; font-size: 13px; }
         
-        /* Pílulas de Status */
         .pill { display: inline-block; padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: bold; }
         .pill-success { background: rgba(16,185,129,.16); color: var(--success); }
         .pill-danger { background: rgba(239,68,68,.16); color: var(--danger); }
         .pill-warning { background: rgba(245,158,11,.16); color: var(--warning); }
         .pill-info { background: rgba(59,130,246,.16); color: var(--info); }
-        .pill-gray { background: #3f3f46; color: #d4d4d8; }
+        .pill-gray { background: var(--border); color: var(--text-light); }
         
-        .budget-row { background: #18181b; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+        .budget-row { background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
         .budget-head { display:flex; justify-content:space-between; gap:10px; margin-bottom:8px; }
         .empty-state { text-align:center; padding:18px; color:#71717a; }
         .danger-outline { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
-        .info-outline { background: transparent; border: 1px solid var(--info); color: #93c5fd; }
-        .inline-price { width: 125px; margin: 0; padding: 9px 10px; border-color: #52525b; background: #09090b; }
+        .info-outline { background: transparent; border: 1px solid var(--info); color: var(--info); }
+        .inline-price { width: 125px; margin: 0; padding: 9px 10px; border-color: var(--border); background: var(--bg-card); }
         .inline-price:focus { outline: 2px solid var(--primary); border-color: var(--primary); }
         
-        .fechamento-mercado { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; background: #18181b; padding: 15px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: wrap; gap: 15px; }
+        .fechamento-mercado { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; background: var(--input-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: wrap; gap: 15px; }
         .fechamento-mercado-btns { display: flex; gap: 10px; flex-wrap: wrap; width: 100%; }
 
         /* CALENDÁRIO CSS */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; text-align: center; }
         .cal-header { font-size: 12px; font-weight: bold; color: var(--primary); padding: 5px 0; border-bottom: 1px solid var(--border); }
-        .cal-day { background: #18181b; border: 1px solid var(--border); border-radius: 6px; min-height: 80px; padding: 5px; display: flex; flex-direction: column; gap: 4px; }
+        .cal-day { background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; min-height: 80px; padding: 5px; display: flex; flex-direction: column; gap: 4px; }
         .cal-day.empty { background: transparent; border: none; }
-        .cal-day-num { font-size: 14px; font-weight: bold; color: #d4d4d8; text-align: right; margin-bottom: 4px; }
+        .cal-day-num { font-size: 14px; font-weight: bold; color: #a1a1aa; text-align: right; margin-bottom: 4px; }
         .cal-day.hoje { border: 1px solid var(--info); background: rgba(59,130,246,0.1); }
         .cal-item { font-size: 11px; padding: 3px 4px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
         
-        /* HISTÓRICO CSS MENSAL */
+        /* GRIDS CSS INTELIGENTES (Cards Flexíveis) */
         .smart-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-top: 15px; }
+        .smart-grid-planejador { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; width: 100%; }
         
         /* 📱 RESPONSIVIDADE EXTREMA PARA CELULAR */
         @media (max-width: 768px) {
             body { padding: 10px; }
             .container { gap: 12px; padding-bottom: 20px; }
             .card { padding: 15px; }
-            h1 { font-size: 20px; line-height: 1.2; }
+            h1 { font-size: 20px; line-height: 1.2; margin-top: 25px;} 
             
             .section-title { flex-direction: column; align-items: flex-start; gap: 8px; }
             .section-title input[type="month"] { width: 100% !important; margin-top: 5px; }
@@ -137,7 +150,7 @@
             .flex-row { gap: 8px; }
             .flex-row > * { min-width: calc(50% - 8px) !important; flex: 1 1 calc(50% - 8px); margin: 0 !important; }
             
-            #lancDesc, #divNome, #compraItem, #assNome, .btn-group-metas, .fechamento-mercado-btns, .btn-group-metas button { 
+            #lancDesc, #divNome, #compraItem, #assNome, #planDesc, .btn-group-metas, .fechamento-mercado-btns, .btn-group-metas button { 
                 min-width: 100% !important; width: 100% !important; 
             }
             .btn-group-metas { flex-direction: column; gap: 8px; }
@@ -155,22 +168,26 @@
             .dash-card h3 { font-size: 12px; }
             .dash-card p { font-size: 18px; }
             
-            .status-nuvem { top: 5px; right: 5px; font-size: 10px; padding: 4px 8px; }
+            .status-nuvem, .theme-toggle { top: 5px; font-size: 10px; padding: 4px 8px; }
+            .status-nuvem { right: 5px; }
+            .theme-toggle { left: 5px; }
+            
             .inline-price { width: 100%; min-width: 0; padding: 8px; font-size: 14px; }
             th, td { padding: 8px 6px; font-size: 13px; }
             
-            /* Compacta Calendário no Celular */
             .cal-day { min-height: 60px; padding: 2px; }
             .cal-item { font-size: 9px; padding: 2px; }
             .cal-day-num { font-size: 12px; }
+            
+            .smart-grid-planejador { grid-template-columns: 1fr; } /* Empilha no celular */
         }
 
         @media print {
-            body { background:#fff; color:#111; padding: 0; }
+            body { background:#fff !important; color:#111 !important; padding: 0; }
             .toolbar, button, input, select, .checkbox-group { display:none !important; }
-            .card, .meta-card, .budget-row, .dash-card { background:#fff; color:#111; border-color:#bbb; box-shadow:none; break-inside:avoid; }
-            td, th { background:#fff; color:#111; }
-            .status-nuvem { display: none !important; }
+            .card, .meta-card, .budget-row, .dash-card { background:#fff !important; color:#111 !important; border-color:#bbb !important; box-shadow:none; break-inside:avoid; }
+            td, th { background:#fff !important; color:#111 !important; }
+            .status-nuvem, .theme-toggle { display: none !important; }
         }
     </style>
 </head>
@@ -179,7 +196,9 @@
 <div id="loader">Conectando ao Firebase... ☁️</div>
 
 <header>
+    <div id="themeToggle" class="theme-toggle" onclick="toggleTheme()">☀️ Dia</div>
     <div class="status-nuvem" id="statusNuvem" onclick="reconectarNuvem()" title="Tocar para forçar reconexão">Conectado ✅</div>
+    
     <h1 contenteditable="true" id="tituloApp" onblur="salvarTitulo()">Vitória - Gestão Financeira Pessoal</h1>
     <p style="color: #a1a1aa; font-size: 14px;">Visão geral, metas e controle do seu dinheiro.</p>
 </header>
@@ -226,6 +245,25 @@
         </div>
     </div>
 
+    <!-- PLANEJAMENTO DE PAGAMENTOS (Fluxo de Caixa) -->
+    <div class="card full-width" style="border-left: 4px solid var(--success);">
+        <h2 class="section-title">
+            Planejamento de Pagamentos (Fluxo de Caixa)
+        </h2>
+        <p class="subtle">As caixas de pagamento organizam suas pendências automaticamente com base nas rendas recebidas.</p>
+        
+        <div class="flex-row" style="background: var(--input-bg); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border);">
+            <div><label style="font-size: 13px; color: #a1a1aa;">Qual a Renda?</label><input type="text" id="planDesc" placeholder="Ex: Salário, Vale, Extra"></div>
+            <div><label style="font-size: 13px; color: #a1a1aa;">Valor (R$)</label><input type="number" id="planValor" placeholder="Ex: 1500"></div>
+            <div><label style="font-size: 13px; color: #a1a1aa;">Dia do Recebimento</label><input type="date" id="planData"></div>
+            <div style="display:flex; align-items:flex-end;">
+                <button type="button" onclick="addRecebimentoRapido()" style="margin:0; background: var(--success);">➕ Lançar Renda</button>
+            </div>
+        </div>
+
+        <div id="planejadorResultado"></div>
+    </div>
+
     <!-- ORÇAMENTO POR CATEGORIA -->
     <div class="card full-width">
         <h2>Orçamento Mensal por Categoria <span id="lblOrcamentoStatus" class="subtle"></span></h2>
@@ -250,7 +288,7 @@
             <span id="lblTotalMetas" style="color: var(--primary); font-size: 16px;">Total Guardado: R$ 0,00</span>
         </h2>
         
-        <div class="flex-row" style="background: #18181b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <div class="flex-row" style="background: var(--input-bg); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border);">
             <div><label style="font-size: 13px; color: #a1a1aa;">Nome da Meta</label><input type="text" id="novaMetaNome" placeholder="Ex: Reserva Viagem"></div>
             <div><label style="font-size: 13px; color: #a1a1aa;">Valor Alvo (R$)</label><input type="number" id="novaMetaValor" placeholder="Ex: 5000"></div>
             <div class="btn-group-metas">
@@ -317,7 +355,7 @@
             <button id="btn-cancel-lanc" class="btn-cancel" onclick="cancelarEdicao('lancamento')">Cancelar Edição</button>
         </div>
         
-        <div class="flex-row" style="background:#18181b; padding:10px; border-radius:8px; margin-top:12px;">
+        <div class="flex-row" style="background:var(--input-bg); padding:10px; border-radius:8px; margin-top:12px; border: 1px solid var(--border);">
             <input type="search" id="filtroTexto" placeholder="🔎 Pesquisar descrição" oninput="renderLancamentos()">
             <select id="filtroTipo" onchange="renderLancamentos()"><option value="">Todos os tipos</option><option value="Entrada">Entradas</option><option value="Saida">Saídas</option></select>
             <select id="filtroStatus" onchange="renderLancamentos()"><option value="">Todos os status</option><option value="Pago">Pago</option><option value="Pendente">Pendente</option></select>
@@ -339,7 +377,7 @@
             <input type="month" class="sync-mes" onchange="sincronizarMes(this.value)" style="width:auto; margin:0; padding:8px; font-size:14px;">
         </h2>
         <p class="subtle">Reúne contas, assinaturas e parcelas do mês selecionado. Verde: pago; amarelo: pendente; vermelho: atrasado.</p>
-        <div class="table-responsive" style="padding:10px; background: #000; border:none;">
+        <div class="table-responsive" style="padding:10px; background: var(--input-bg); border: 1px solid var(--border);">
             <div id="calendarioFinanceiro" class="calendar-grid"></div>
         </div>
     </div>
@@ -407,19 +445,6 @@
         </div>
     </div>
 
-    <!-- A CAIXA DO RELATÓRIO MENSAL FOI ADICIONADA DE VOLTA AQUI 🛡️ -->
-    <div class="card">
-        <h2>Relatório Mensal Automático</h2>
-        <div id="relatorioMensal" class="meta-card"></div>
-    </div>
-
-    <!-- RELATÓRIO E HISTÓRICO MENSAL -->
-    <div class="card full-width" id="historico">
-        <h2>Histórico e Comparação Mensal</h2>
-        <p class="subtle" style="margin-top: 0;">Visualize de forma clara o comportamento dos últimos 6 meses (Entradas vs Saídas).</p>
-        <div id="historicoMensal" class="smart-grid"></div>
-    </div>
-
     <!-- COMPARADOR DE TRANSPORTE -->
     <div class="card">
         <h2>Uber Moto × Veículo Próprio</h2>
@@ -472,6 +497,19 @@
             <div id="totalCompras"></div>
         </div>
     </div>
+    
+    <!-- RELATÓRIO MENSAL -->
+    <div class="card">
+        <h2>Relatório Mensal Automático</h2>
+        <div id="relatorioMensal" class="meta-card"></div>
+    </div>
+
+    <!-- HISTÓRICO MENSAL BARRAS -->
+    <div class="card full-width" id="historico">
+        <h2>Histórico e Comparação Mensal</h2>
+        <p class="subtle" style="margin-top: 0;">Visualize de forma clara o comportamento dos últimos 6 meses (Entradas vs Saídas).</p>
+        <div id="historicoMensal" class="smart-grid"></div>
+    </div>
 
     <!-- BASES FINANCEIRAS -->
     <div class="card full-width">
@@ -514,7 +552,6 @@
         measurementId: "G-5F1BZMPL5L"
     };
 
-    // Inicializa Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const documentoGeral = db.collection('sistemaFinanceiro').doc('vitoria_dados');
@@ -528,7 +565,8 @@
     let assinaturas = [];
     let configGerais = {
         chkMim: true, chkDoar: true, chkContas: true, 
-        chkInvest: true, chkGuardar: true, chkLivre: true
+        chkInvest: true, chkGuardar: true, chkLivre: true,
+        lightMode: false
     };
     
     let editandoId = { lancamento: null, divida: null, compra: null, meta: null, assinatura: null };
@@ -538,10 +576,12 @@
     function escapar(v) { const d = document.createElement('div'); d.textContent = v == null ? '' : String(v); return d.innerHTML; }
     function hojeISO() { return new Date().toISOString().slice(0, 10); }
     function mesAtualISO() { return new Date().toISOString().slice(0, 7); }
+    function formatarDataCurta(dataISO) { if(!dataISO) return ''; const [y,m,d] = dataISO.split('-'); return `${d}/${m}`; }
     
     // --- LÓGICA DE CARREGAMENTO (NUVEM COM FALLBACK LOCAL) ---
     window.onload = () => {
         document.getElementById('divDataAdicao').value = hojeISO();
+        document.getElementById('planData').value = hojeISO();
         
         documentoGeral.get().then((doc) => {
             if (doc.exists) {
@@ -553,9 +593,7 @@
                 orcamentos = dados.orcamentos || {};
                 assinaturas = dados.assinaturas || [];
                 
-                dividas.forEach(d => {
-                    if(d.pagasIniciais === undefined) d.pagasIniciais = d.pagas || 0;
-                });
+                dividas.forEach(d => { if(d.pagasIniciais === undefined) d.pagasIniciais = d.pagas || 0; });
                 
                 if(dados.titulo) document.getElementById('tituloApp').innerText = dados.titulo;
                 if(dados.baseRenda) document.getElementById('baseRenda').value = dados.baseRenda;
@@ -577,6 +615,7 @@
                     document.getElementById('chkInvest').checked = configGerais.chkInvest ?? true;
                     document.getElementById('chkGuardar').checked = configGerais.chkGuardar ?? true;
                     document.getElementById('chkLivre').checked = configGerais.chkLivre ?? true;
+                    if(configGerais.lightMode) aplicarTema();
                 }
                 
                 localStorage.setItem('vitoria_backup', JSON.stringify(dados));
@@ -597,9 +636,7 @@
                 orcamentos = backup.orcamentos || {};
                 assinaturas = backup.assinaturas || [];
                 
-                dividas.forEach(d => {
-                    if(d.pagasIniciais === undefined) d.pagasIniciais = d.pagas || 0;
-                });
+                dividas.forEach(d => { if(d.pagasIniciais === undefined) d.pagasIniciais = d.pagas || 0; });
                 
                 if(backup.titulo) document.getElementById('tituloApp').innerText = backup.titulo;
                 if(backup.baseRenda) document.getElementById('baseRenda').value = backup.baseRenda;
@@ -613,6 +650,7 @@
                     document.getElementById('chkInvest').checked = configGerais.chkInvest ?? true;
                     document.getElementById('chkGuardar').checked = configGerais.chkGuardar ?? true;
                     document.getElementById('chkLivre').checked = configGerais.chkLivre ?? true;
+                    if(configGerais.lightMode) aplicarTema();
                 }
             }
             posLoad("Modo Offline ⚠️", "var(--warning)", mesBackup);
@@ -622,12 +660,8 @@
     function posLoad(statusText, statusColor, mesInicial) {
         document.getElementById('loader').style.display = 'none';
         let el = document.getElementById('statusNuvem');
-        if(el) {
-            el.innerText = statusText;
-            el.style.color = statusColor;
-        }
+        if(el) { el.innerText = statusText; el.style.color = statusColor; }
         
-        // Sincroniza todos os botões de mês de uma vez
         document.querySelectorAll('.sync-mes').forEach(input => input.value = mesInicial);
         document.getElementById('lancData').value = hojeISO();
         
@@ -640,12 +674,33 @@
         salvarERenderizar();
     }
 
-    // --- SINCRONIZAR TODOS OS CALENDÁRIOS ---
+    // --- MODO DIA / NOITE ---
+    function toggleTheme() {
+        configGerais.lightMode = !configGerais.lightMode;
+        aplicarTema();
+        salvarNuvemSilencioso(); 
+    }
+
+    function aplicarTema() {
+        const body = document.body;
+        const btn = document.getElementById('themeToggle');
+        if(configGerais.lightMode) {
+            body.classList.add('light-mode');
+            btn.innerText = '🌙 Noite';
+        } else {
+            body.classList.remove('light-mode');
+            btn.innerText = '☀️ Dia';
+        }
+    }
+
+    // --- SINCRONIZAR MESES ---
     function sincronizarMes(valorSelecionado) {
-        document.querySelectorAll('.sync-mes').forEach(input => {
-            input.value = valorSelecionado;
-        });
+        document.querySelectorAll('.sync-mes').forEach(input => { input.value = valorSelecionado; });
         localStorage.setItem('mesReferencia', valorSelecionado);
+        
+        document.getElementById('planData').value = valorSelecionado + '-01';
+        document.getElementById('lancData').value = valorSelecionado + '-01';
+        
         gerarRecorrentesDoMes();
         salvarERenderizar();
     }
@@ -666,9 +721,7 @@
                 orcamentos = dados.orcamentos || {};
                 assinaturas = dados.assinaturas || [];
                 
-                dividas.forEach(d => {
-                    if(d.pagasIniciais === undefined) d.pagasIniciais = d.pagas || 0;
-                });
+                dividas.forEach(d => { if(d.pagasIniciais === undefined) d.pagasIniciais = d.pagas || 0; });
                 
                 if(dados.titulo) document.getElementById('tituloApp').innerText = dados.titulo;
                 if(dados.baseRenda) document.getElementById('baseRenda').value = dados.baseRenda;
@@ -690,6 +743,7 @@
                     document.getElementById('chkInvest').checked = configGerais.chkInvest ?? true;
                     document.getElementById('chkGuardar').checked = configGerais.chkGuardar ?? true;
                     document.getElementById('chkLivre').checked = configGerais.chkLivre ?? true;
+                    aplicarTema();
                 }
                 
                 localStorage.setItem('vitoria_backup', JSON.stringify(dados));
@@ -702,9 +756,6 @@
             console.error("Falha ao reconectar:", error);
             el.innerText = "Modo Offline ⚠️ (Tocar de novo)";
             el.style.color = "var(--warning)";
-            if(error.message.includes("permissions") || error.message.includes("Missing or insufficient")) {
-                alert("⚠️ O Google bloqueou a leitura. Verifique as Regras do Firestore.");
-            }
         });
     }
 
@@ -725,7 +776,7 @@
         
         // 2. Gera Assinaturas Ativas
         assinaturas.forEach(ass => {
-            if(ass.pausada) return; // Não gera se estiver pausada
+            if(ass.pausada) return; 
             
             const chave = `ass-${ass.id}-${mes}`;
             if(lancamentos.some(i => i.chaveRecorrencia === chave)) return;
@@ -749,6 +800,117 @@
         });
     }
 
+    // --- PLANEJAMENTO DE PAGAMENTOS (FLUXO DE CAIXA) EM CARDS ---
+    function addRecebimentoRapido() {
+        const desc = document.getElementById('planDesc').value;
+        const valor = parseFloat(document.getElementById('planValor').value) || 0;
+        const data = document.getElementById('planData').value;
+        
+        if(!desc || valor <= 0 || !data) return alert("Preencha descrição, valor e data do recebimento.");
+        
+        lancamentos.push({
+            id: Date.now(),
+            desc: desc,
+            tipo: 'Entrada',
+            cat: 'Salario',
+            valor: valor,
+            data: data,
+            metodo: 'PIX',
+            status: 'Pago',
+            recorrente: false,
+            recorrenciaId: Date.now()
+        });
+        
+        document.getElementById('planDesc').value = '';
+        document.getElementById('planValor').value = '';
+        
+        let mesDaRenda = data.slice(0, 7);
+        sincronizarMes(mesDaRenda);
+    }
+
+    function renderPlanejador() {
+        const container = document.getElementById('planejadorResultado');
+        if(!container) return;
+
+        const mesRef = document.getElementById('mesReferencia').value || mesAtualISO();
+        
+        let entradas = lancamentos.filter(l => l.tipo === 'Entrada' && l.data && l.data.startsWith(mesRef)).sort((a,b) => a.data.localeCompare(b.data));
+        let saidasPendentes = lancamentos.filter(l => l.tipo === 'Saida' && l.status === 'Pendente' && l.data && l.data.startsWith(mesRef)).sort((a,b) => a.data.localeCompare(b.data));
+
+        if(entradas.length === 0) {
+            container.style.display = 'block';
+            container.innerHTML = '<div class="empty-state">Adicione seus recebimentos do mês (Entradas) para visualizar o planejamento.</div>';
+            return;
+        }
+
+        container.style.display = 'grid';
+        container.style.gridTemplateColumns = 'repeat(auto-fit, minmax(280px, 1fr))';
+        container.style.gap = '15px';
+
+        let html = '';
+        let saldoAcumulado = 0;
+        
+        let primeiraData = entradas[0].data;
+        let saidasAtrasadas = saidasPendentes.filter(s => s.data < primeiraData);
+        
+        if(saidasAtrasadas.length > 0) {
+            let totalAtrasadas = saidasAtrasadas.reduce((acc, s) => acc + Number(s.valor), 0);
+            html += `<div class="meta-card" style="display:flex; flex-direction:column; gap:10px; border-top: 4px solid var(--danger);">`;
+            html += `  <h3 style="margin:0; color:var(--danger); font-size:16px;">Vencidas antes do dia ${primeiraData.slice(8,10)}</h3>`;
+            html += `  <div style="font-size: 14px; line-height: 1.6;">`;
+            html += `    <div style="color:var(--text-light);">Disponível: <strong>R$ 0,00</strong></div>`;
+            html += `    <div style="color:var(--text-light);">Contas: <strong>${formataMoeda(totalAtrasadas)}</strong></div>`;
+            html += `    <div style="color:var(--danger);">Sobra: <strong>-${formataMoeda(totalAtrasadas)}</strong></div>`;
+            html += `  </div>`;
+            html += `  <hr style="border:0; border-top:1px solid var(--border); width:100%; margin: 5px 0;">`;
+            html += `  <div style="font-size:12px; color:#a1a1aa; display:flex; flex-direction:column; gap:6px;">`;
+            saidasAtrasadas.forEach(s => {
+                html += `    <div>${s.data.split('-').reverse().join('/')} — ${escapar(s.desc)} (${formataMoeda(s.valor)})</div>`;
+            });
+            html += `  </div>`;
+            html += `</div>`;
+            saldoAcumulado -= totalAtrasadas; 
+        }
+
+        entradas.forEach((entrada, index) => {
+            let dataInicio = entrada.data;
+            let dataFim = (index + 1 < entradas.length) ? entradas[index + 1].data : mesRef + '-31';
+            
+            let saidasDoPeriodo = saidasPendentes.filter(s => s.data >= dataInicio && s.data < dataFim);
+            let totalSaidas = saidasDoPeriodo.reduce((acc, s) => acc + Number(s.valor), 0);
+            let valorEntrada = Number(entrada.valor);
+            
+            let valorDisponivel = saldoAcumulado + valorEntrada;
+            saldoAcumulado = valorDisponivel - totalSaidas;
+            
+            let corSobra = saldoAcumulado >= 0 ? 'var(--success)' : 'var(--danger)';
+            let diaEntrada = entrada.data.slice(8,10);
+            
+            html += `<div class="meta-card" style="display:flex; flex-direction:column; gap:10px; border-top: 4px solid var(--primary);">`;
+            html += `  <h3 style="margin:0; color:var(--primary); font-size:16px;">${escapar(entrada.desc)} (Dia ${diaEntrada})</h3>`;
+            html += `  <div style="font-size: 14px; line-height: 1.6;">`;
+            html += `    <div style="color:var(--text-light);">Disponível: <strong>${formataMoeda(valorDisponivel)}</strong></div>`;
+            html += `    <div style="color:var(--text-light);">Contas: <strong>${formataMoeda(totalSaidas)}</strong></div>`;
+            html += `    <div style="color:${corSobra};">Sobra: <strong>${formataMoeda(saldoAcumulado)}</strong></div>`;
+            html += `  </div>`;
+            html += `  <hr style="border:0; border-top:1px solid var(--border); width:100%; margin: 5px 0;">`;
+            html += `  <div style="font-size:12px; color:#a1a1aa; display:flex; flex-direction:column; gap:6px;">`;
+            
+            if(saidasDoPeriodo.length > 0) {
+                saidasDoPeriodo.forEach(s => {
+                    html += `    <div>${s.data.split('-').reverse().join('/')} — ${escapar(s.desc)} (${formataMoeda(s.valor)})</div>`;
+                });
+            } else {
+                html += `    <div style="font-style:italic;">Nenhuma conta atribuída.</div>`;
+            }
+            
+            html += `  </div>`;
+            html += `</div>`;
+        });
+
+        container.innerHTML = html;
+    }
+
     // --- ASSINATURAS ---
     function addAssinatura() {
         const nome = document.getElementById('assNome').value;
@@ -770,7 +932,6 @@
             let index = assinaturas.findIndex(a => a.id === editandoId.assinatura);
             if(index !== -1) assinaturas[index] = item;
             
-            // Se o valor/dia mudou, atualiza a cobrança PENDENTE gerada neste mês
             const mes = document.getElementById('mesReferencia').value || mesAtualISO();
             const chave = `ass-${item.id}-${mes}`;
             let lancIndex = lancamentos.findIndex(l => l.chaveRecorrencia === chave && l.status === 'Pendente');
@@ -814,14 +975,13 @@
         if(ass) {
             ass.pausada = !ass.pausada;
             
-            // Se pausar, remove a cobrança PENDENTE gerada no mês atual para que não compute nos gastos
             const mes = document.getElementById('mesReferencia').value || mesAtualISO();
             const chave = `ass-${id}-${mes}`;
             
             if (ass.pausada) {
                 lancamentos = lancamentos.filter(l => !(l.chaveRecorrencia === chave && l.status === 'Pendente'));
             } else {
-                gerarRecorrentesDoMes(); // Regera se foi despausado
+                gerarRecorrentesDoMes(); 
             }
             
             salvarERenderizar();
@@ -831,7 +991,6 @@
     function deletarAssinatura(id) {
         if(confirm("Tem certeza que deseja excluir esta assinatura permanentemente?")) {
             assinaturas = assinaturas.filter(a => a.id !== id);
-            // Opcional: apagar as cobranças pendentes dela
             lancamentos = lancamentos.filter(l => !(l.chaveRecorrencia && l.chaveRecorrencia.startsWith(`ass-${id}-`) && l.status === 'Pendente'));
             salvarERenderizar();
         }
@@ -845,7 +1004,7 @@
         assinaturas.forEach(ass => {
             if(!ass.pausada) totalAtivas += Number(ass.valor);
             
-            let corCard = ass.pausada ? 'border-color: #3f3f46; opacity: 0.6;' : 'border-color: var(--primary);';
+            let corCard = ass.pausada ? 'border-color: var(--border); opacity: 0.6;' : 'border-color: var(--primary);';
             let labelStatus = ass.pausada ? '<span class="pill pill-gray">Pausada</span>' : '<span class="pill pill-success">Ativa</span>';
             let txtPausa = ass.pausada ? '▶️ Retomar' : '⏸️ Pausar';
             
@@ -1343,6 +1502,7 @@
     function salvarERenderizar() {
         renderAssinaturas();
         renderLancamentos();
+        renderPlanejador();
         renderCalendario();
         renderDividas();
         renderCompras();
@@ -1358,6 +1518,7 @@
         salvarNuvemSilencioso();
     }
 
+    // --- TRUQUE NINJA: Limpeza de dados invisíveis antes de enviar pro Google ---
     function salvarNuvemSilencioso() {
         let pacoteDados = {
             lancamentos: lancamentos,
@@ -1515,25 +1676,25 @@
             let pctSaida = (val.saida / maxValor) * 100;
 
             html += `
-                <div class="meta-card" style="display:flex; flex-direction:column; gap:12px; background: #18181b; border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+                <div class="meta-card" style="display:flex; flex-direction:column; gap:12px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
                     <strong style="font-size: 15px; color: var(--text-light);">${formatMes}</strong>
                     
                     <div style="display:flex; flex-direction:column; gap:4px;">
                         <span style="color: var(--success); font-size: 13px;">Entradas: ${formataMoeda(val.entrada)}</span>
-                        <div style="background: #27272a; height: 6px; border-radius: 3px; width: 100%;">
+                        <div style="background: var(--border); height: 6px; border-radius: 3px; width: 100%;">
                             <div style="background: var(--success); height: 100%; border-radius: 3px; width: ${pctEntrada}%;"></div>
                         </div>
                     </div>
                     
                     <div style="display:flex; flex-direction:column; gap:4px;">
                         <span style="color: var(--danger); font-size: 13px;">Saídas: ${formataMoeda(val.saida)}</span>
-                        <div style="background: #27272a; height: 6px; border-radius: 3px; width: 100%;">
+                        <div style="background: var(--border); height: 6px; border-radius: 3px; width: 100%;">
                             <div style="background: var(--danger); height: 100%; border-radius: 3px; width: ${pctSaida}%;"></div>
                         </div>
                     </div>
                     
                     <div style="margin-top: 4px; font-size: 14px;">
-                        <span style="color: #a1a1aa;">Resultado:</span> <strong style="color: ${cor};">${formataMoeda(saldo)}</strong>
+                        <span class="subtle">Resultado:</span> <strong style="color: ${cor};">${formataMoeda(saldo)}</strong>
                     </div>
                 </div>
             `;
@@ -1759,7 +1920,7 @@
 
     function renderRelatorioMensal() {
         const relatorioBox = document.getElementById('relatorioMensal');
-        if(!relatorioBox) return; // Trava de segurança anti-offline
+        if(!relatorioBox) return;
         
         const mes = document.getElementById('mesReferencia').value || mesAtualISO();
         const itens = lancamentos.filter(i => !i.data || i.data.startsWith(mes));
@@ -1830,6 +1991,10 @@
                     document.getElementById('chkInvest').checked = configGerais.chkInvest ?? true;
                     document.getElementById('chkGuardar').checked = configGerais.chkGuardar ?? true;
                     document.getElementById('chkLivre').checked = configGerais.chkLivre ?? true;
+                    if(configGerais.lightMode !== undefined) {
+                        configGerais.lightMode = d.configGerais.lightMode;
+                        aplicarTema();
+                    }
                 }
                 salvarERenderizar(); alert('Backup restaurado com sucesso!');
             } catch(err) { alert('Arquivo de backup inválido.'); }
